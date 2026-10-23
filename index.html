@@ -1,0 +1,1966 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Site brief</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700&family=Public+Sans:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@geoman-io/leaflet-geoman-free@2.17.0/dist/leaflet-geoman.css">
+<style>
+:root{
+  --paper:#F1F5F3; --panel:#FFFFFF; --ink:#12272B; --muted:#587072; --line:#D5DFDC;
+  --accent:#0B6E6E; --flag:#E8590C; --warn:#9A3B00;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0C1719; --panel:#122326; --ink:#E4EEEC; --muted:#93A9AA; --line:#284246;
+    --accent:#4FC3B8; --flag:#FF8A4C; --warn:#FFB07A;
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--paper);color:var(--ink);font-family:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.5}
+.app{display:grid;grid-template-columns:1fr;min-height:100vh}
+#map{height:46vh;min-height:280px;width:100%;z-index:0}
+.panel{background:var(--panel);padding:20px 18px 48px;max-width:100%}
+h1{font-family:"Archivo",system-ui,sans-serif;font-weight:700;font-size:1.7rem;margin:0 0 4px;letter-spacing:-.01em}
+h2{font-family:"Archivo",system-ui,sans-serif;font-weight:700;font-size:1.05rem;margin:28px 0 6px}
+.lede{color:var(--muted);margin:0 0 14px;max-width:60ch}
+form{display:flex;gap:8px;margin-bottom:6px}
+input[type=search]{flex:1;min-width:0;padding:11px 12px;border:1px solid var(--line);border-radius:6px;background:var(--paper);color:var(--ink);font:inherit}
+button{font:inherit;padding:11px 16px;border-radius:6px;border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer;font-weight:600}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) button{color:#0C1719}}
+button.quiet{background:transparent;color:var(--accent)}
+button:focus-visible,input:focus-visible{outline:3px solid var(--flag);outline-offset:2px}
+.status{color:var(--muted);font-size:.92rem;min-height:1.4em}
+dl{margin:0}
+.row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 16px;padding:9px 0;border-bottom:1px solid var(--line)}
+.row dt{font-weight:600}
+.row dd{margin:0;text-align:right;font-variant-numeric:tabular-nums}
+.row .note{grid-column:1 / -1;color:var(--muted);font-size:.86rem}
+.flag{color:var(--warn);font-weight:600}
+.err{color:var(--warn);padding:8px 0}
+.err .retry{margin-left:8px;padding:3px 10px;font-size:.82rem;border-color:var(--warn);background:transparent;color:var(--warn)}
+.rose{width:190px;height:190px;color:var(--accent);display:block;margin:8px 0}
+.rose text{fill:var(--muted);font-size:11px;font-family:inherit}
+.bars{display:flex;align-items:flex-end;gap:4px;height:80px;margin:8px 0 2px}
+.bars span{flex:1;background:var(--accent);opacity:.85;border-radius:2px 2px 0 0;min-height:2px}
+.bars-label{display:flex;gap:4px;color:var(--muted);font-size:.72rem}
+.bars-label span{flex:1;text-align:center}
+.todo li{margin:6px 0}
+.todo{padding-left:18px;color:var(--muted)}
+.actions{display:flex;gap:8px;margin-top:18px;flex-wrap:wrap}
+.small{font-size:.8rem;color:var(--muted);margin-top:24px;max-width:62ch}
+.section-card{margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
+.section-svg{width:100%;height:auto;display:block;background:linear-gradient(var(--paper),var(--panel));border-radius:6px}
+.section-legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.78rem;color:var(--muted);margin-top:6px}
+.section-legend span{display:inline-flex;align-items:center;gap:5px}
+.swatch{width:10px;height:10px;border-radius:2px;display:inline-block}
+.cadbar{position:fixed;top:0;left:0;right:470px;z-index:1100;display:flex;gap:2px;align-items:center;padding:4px 8px;background:var(--panel);border-bottom:1px solid var(--line);overflow-x:auto}
+.cadbar svg{display:block}
+.cadbar button{background:transparent;color:var(--ink);border:1px solid transparent;padding:6px 9px;font-size:.78rem;font-weight:600;border-radius:3px;white-space:nowrap}
+.cadbar button:hover{border-color:var(--line)}
+.cadbar button.on{background:var(--accent);color:var(--paper);border-color:var(--accent)}
+.cadbar .sep{width:1px;height:20px;background:var(--line);margin:0 6px;flex:none}
+.leaflet-top{top:40px}
+.layerbox{position:fixed;top:150px;left:10px;z-index:1050;background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:8px 10px;font-size:.78rem;display:flex;flex-direction:column;gap:5px}
+.layerbox label{display:flex;gap:6px;align-items:center}
+.layerbox select{font:inherit;padding:2px;background:var(--paper);color:var(--ink);border:1px solid var(--line)}
+body.mode3d #map3d{position:fixed;top:40px;left:0;width:calc(100vw - 470px);height:calc(100vh - 40px);z-index:1000;border-radius:0;min-height:0}
+#drawBoundary,#drawLine{display:none}
+.sec-tabs{display:flex;gap:4px;margin:8px 34px 6px 0;flex-wrap:wrap}
+.sec-tab{background:transparent;color:var(--ink);border:1px solid var(--line);padding:5px 12px;font-size:.8rem;font-weight:600;border-radius:4px}
+.sec-tab.on{background:var(--accent);color:var(--paper);border-color:var(--accent)}
+.geo-row{display:flex;gap:12px;flex-wrap:wrap;font-size:.8rem;margin:6px 0}
+.geo-row input{width:58px;font:inherit;padding:2px 4px;border:1px solid var(--line);background:var(--paper);color:var(--ink)}
+#sectionWrap.docked{position:fixed;top:48px;left:230px;width:calc(100vw - 720px);min-width:420px;max-height:calc(100vh - 110px);overflow:auto;z-index:1040;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:0 14px 8px}
+#sectionWrap .section-card{position:relative;border-top:none;margin-top:8px}
+#sectionWrap.docked .lede{display:none}
+.secx{position:absolute;top:2px;right:0;padding:2px 9px;font-size:1rem;background:transparent;color:var(--ink);border:1px solid var(--line)}
+#stackView{display:none;position:fixed;top:40px;left:0;width:calc(100vw - 470px);height:calc(100vh - 40px);z-index:1010;background:var(--paper);overflow:auto;perspective:1400px}
+#stackView.on{display:block}
+.stk-plane{position:relative;height:210px;display:flex;justify-content:center;align-items:center}
+.stk-plane::after{content:"";position:absolute;left:50%;top:100%;height:34px;border-left:1px dotted var(--muted)}
+.stk-svg{width:300px;height:300px;overflow:hidden;transform:rotateX(60deg) rotateZ(-35deg)}
+.stk-label{position:absolute;left:24px;top:50%;font:12px monospace;color:var(--muted);max-width:150px}
+.stk-close{position:sticky;top:8px;left:8px;z-index:2;margin:8px;padding:6px 12px;font-size:.8rem}
+.stk-msg{padding:20px 30px;color:var(--muted);font-size:.85rem}
+.stk-bar{position:sticky;top:0;z-index:3;background:var(--panel);border-bottom:1px solid var(--line);display:flex;gap:12px;flex-wrap:wrap;align-items:center;padding:6px 10px;font-size:.76rem}
+.stk-bar .stk-close{position:static;margin:0}
+#stackView,.stk-bar{color:var(--ink)}
+.stk-bar input[type=text],.stk-bar select{background:#fff;color:#111}
+.stk-bar label{display:inline-flex;gap:4px;align-items:center;margin-right:6px}
+.stk-bar input[type=text]{font:inherit;padding:2px 5px;border:1px solid var(--line);background:var(--paper);color:var(--ink)}
+@media (max-width:899px){#sectionWrap.docked{top:auto;left:0;width:100vw;min-width:0;bottom:0;max-height:50vh}#stackView{width:100vw}}
+@media (max-width:899px){.cadbar{right:0}.layerbox{left:10px}body.mode3d #map3d{width:100vw;height:46vh}}
+#map3d{height:52vh;min-height:320px;width:100%;border-radius:8px;overflow:hidden;background:#dfe6e2}
+.view3d-controls{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.view3d-controls label{font-size:.82rem;color:var(--muted);display:flex;align-items:center;gap:6px}
+.view3d-controls input[type=date]{font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:5px;background:var(--paper);color:var(--ink)}
+.demo-banner{background:#5A1E00;color:#FFE3CC;font-weight:700;font-size:.82rem;padding:9px 12px;border-radius:6px;margin-bottom:10px}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .demo-banner{background:#FFB07A;color:#3A1400}}
+@media (min-width:900px){
+  .app{grid-template-columns:minmax(0,1fr) 470px;height:100vh}
+  #map{height:100vh}
+  .panel{overflow-y:auto;height:100vh}
+}
+.chart{margin:12px 0}.chart-t{font-size:.82rem;font-weight:600;margin-bottom:2px}.chart-l{font-size:.72rem;color:var(--muted)}
+.stk-legend{position:absolute;right:20px;top:50%;transform:translateY(-50%);font:11px "Public Sans",sans-serif;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:6px 8px;max-width:190px}
+.stk-legend b{display:block;margin-bottom:4px;font-size:11px}
+.stk-legend div{display:flex;align-items:center;gap:6px;margin:2px 0}
+.stk-legend i{width:14px;height:10px;border:1px solid rgba(0,0,0,.25);flex:none;display:inline-block}
+.sec-scale{font-size:.8rem;display:inline-flex;gap:4px;align-items:center;margin:4px 0}
+.sec-scale input{font:inherit;padding:2px 5px;border:1px solid var(--line);background:var(--paper);color:var(--ink)}
+</style>
+</head>
+<body>
+<div class="cadbar" id="cadbar">
+  <button id="tSelect" class="on" type="button" title="Select" aria-label="Select"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3l14 8-6 2-2 6z"/></svg></button>
+  <span class="sep"></span>
+  <button id="tBoundary" class="" type="button" title="Draw site boundary" aria-label="Draw site boundary"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8l8-4 8 6-3 9H6z"/></svg></button>
+  <button id="tSection" class="" type="button" title="Draw section line" aria-label="Draw section line"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18M7 7v10M17 7v10"/></svg></button>
+  <button id="tRect" class="" type="button" title="Rectangle" aria-label="Rectangle"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="6" width="16" height="12"/></svg></button>
+  <button id="tCircle" class="" type="button" title="Circle" aria-label="Circle"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/></svg></button>
+  <button id="tLine" class="" type="button" title="Line" aria-label="Line"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20L20 4"/><circle cx="4" cy="20" r="1.6" fill="currentColor"/><circle cx="20" cy="4" r="1.6" fill="currentColor"/></svg></button>
+  <span class="sep"></span>
+  <button id="tEdit" class="" type="button" title="Edit: resize and reshape shapes" aria-label="Edit: resize and reshape shapes"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10"/><rect x="3" y="3" width="4" height="4" fill="currentColor"/><rect x="17" y="17" width="4" height="4" fill="currentColor"/></svg></button>
+  <button id="tMove" class="" type="button" title="Move shapes" aria-label="Move shapes"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M3 12h18M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3"/></svg></button>
+  <span class="sep"></span>
+  <button id="tUndo" class="" type="button" title="Undo" aria-label="Undo"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5M4 9h10a6 6 0 010 12h-3"/></svg></button>
+  <button id="tRedo" class="" type="button" title="Redo" aria-label="Redo"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14l5-5-5-5M20 9H10a6 6 0 000 12h3"/></svg></button>
+  <button id="tClear" class="" type="button" title="Clear shapes" aria-label="Clear shapes"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h14M9 7V4h6v3M7 7l1 13h8l1-13"/></svg></button>
+  <span class="sep"></span>
+  <button id="tStack" type="button" title="Layer stack" aria-label="Layer stack"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 3l9 4-9 4-9-4zM3 12l9 4 9-4M3 17l9 4 9-4"/></svg></button>
+  <button id="t2D" class="on" type="button">2D</button>
+  <button id="t3D" type="button">3D</button>
+</div>
+<div class="layerbox">
+  <strong>Layers</strong>
+  <label><input type="checkbox" id="lyShade" checked> Elevation shading</label>
+  <label>Colours <select id="rampSel"><option value="terrain">Terrain</option><option value="grey">Greys</option><option value="warm">Warm</option><option value="cool">Cool</option></select></label>
+  <label><input type="checkbox" id="lyContour"> Contours</label>
+  <label><input type="checkbox" id="lyShapes" checked> Drawn shapes</label>
+</div>
+<div class="app">
+  <div id="map" aria-label="Site map"></div>
+  <main class="panel">
+    <h1>Site brief</h1>
+    <p class="lede">Search an address or tap the map. You get terrain, wind, climate, water and surroundings for that point, from free public data.</p>
+    <form id="search">
+      <input type="search" id="q" placeholder="Address or place name" aria-label="Address or place name">
+      <button type="submit">Find</button>
+    </form>
+    <div class="view3d-controls">
+      <button class="quiet" id="drawBoundary" type="button">Draw site boundary</button>
+      <span class="lede" style="margin:0">Or just tap a point on the map — both work.</span>
+    </div>
+    <div class="status" id="status" role="status" aria-live="polite">Waiting for a site.</div>
+    <div id="out"></div>
+    <div class="actions" id="actions" hidden>
+      <button class="quiet" id="drawLine">Draw section line</button>
+      <button class="quiet" id="autoSection">Section through site</button>
+      <button class="quiet" id="contourBtn">Contour map</button>
+      <button class="quiet" id="open3d">Open 3D view</button>
+      <button class="quiet" id="toggleDemo">Show illustrative demo data</button>
+      <button class="quiet" id="dl">Save data as JSON</button>
+    </div>
+    <div id="sectionWrap"></div>
+    <div id="view3dWrap"></div>
+    <div id="demoWrap"></div>
+    <p class="small">Screening-level figures only. Elevation comes from a roughly 90 m grid, flood values from a 5 km river model, climate from reanalysis data. Confirm anything that drives a design or cost decision with a survey, official hazard maps and the responsible engineer.</p>
+  </main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@geoman-io/leaflet-geoman-free@2.17.0/dist/leaflet-geoman.min.js"></script>
+<script>
+/* ---------- helpers ---------- */
+window.addEventListener('error', e => { const st = document.getElementById('status'); if (st) st.textContent = 'Script error: ' + e.message + ' (line ' + e.lineno + ')'; });
+window.addEventListener('unhandledrejection', e => { const st = document.getElementById('status'); if (st) st.textContent = 'Error: ' + ((e.reason && e.reason.message) || e.reason); });
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const COMPASS = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
+const bearingName = d => COMPASS[Math.round(((d % 360) + 360) % 360 / 22.5) % 16];
+const mean = a => a.length ? a.reduce((x, y) => x + y, 0) / a.length : NaN;
+const fmt = (n, dp = 1) => Number.isFinite(n) ? n.toFixed(dp) : '–';
+const iso = d => d.toISOString().slice(0, 10);
+const OVQ = new Map(); let ovChain = Promise.resolve();
+const OV_URLS = ['https://overpass-api.de/api/interpreter', 'https://overpass.kumi.systems/api/interpreter', 'https://overpass.private.coffee/api/interpreter', 'https://maps.mail.ru/osm/tools/overpass/api/interpreter'];
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+function overpassQuery(q) {
+  if (OVQ.has(q)) return OVQ.get(q);
+  const p = ovChain.then(async () => {
+    let last;
+    for (let round = 0; round < 1; round++) for (const u of OV_URLS) {
+      try {
+        const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 20000);
+        const r = await fetch(u, { method: 'POST', body: 'data=' + encodeURIComponent(q), headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, signal: ctl.signal });
+        clearTimeout(t);
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const j = await r.json();
+        if (j.remark && /error|timeout|out of memory/i.test(j.remark) && !(j.elements || []).length) throw new Error('HTTP 504');
+        return j;
+      } catch (e) { last = e; await sleep(400); }
+    }
+    throw last || new Error('Failed to fetch');
+  });
+  ovChain = p.catch(() => {}).then(() => sleep(600));
+  p.catch(() => OVQ.delete(q));
+  OVQ.set(q, p);
+  return p;
+}
+async function getJSON(url) {
+  const OV = 'https://overpass-api.de/api/interpreter?data=';
+  if (url.startsWith(OV)) return overpassQuery(decodeURIComponent(url.slice(OV.length)));
+  let last;
+  for (let i = 0; i < 3; i++) {
+    try {
+      const r = await fetch(url);
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return await r.json();
+    } catch (e) { last = e; if (/HTTP 4(?!29)/.test(String(e.message))) break; await sleep(700 * (i + 1)); }
+  }
+  throw last;
+}
+const row = (label, value, note, cls) =>
+  `<div class="row"><dt>${esc(label)}</dt><dd class="${cls || ''}">${value}</dd>${note ? `<div class="note">${note}</div>` : ''}</div>`;
+const section = (title, rows) => `<h2>${esc(title)}</h2><dl>${rows}</dl>`;
+const failed = what => `<div class="err">Could not load ${esc(what)}. Check your internet connection and try again.</div>`;
+function reasonFor(err) {
+  const msg = String(err && err.message || err || '');
+  if (/HTTP 429/.test(msg)) return 'the data source is rate-limiting requests right now';
+  if (/HTTP 5\d\d/.test(msg)) return 'the data source is temporarily unavailable';
+  if (/HTTP 4\d\d/.test(msg)) return 'the request was rejected (HTTP ' + msg.match(/\d{3}/)[0] + ')';
+  if (/Failed to fetch|NetworkError|Load failed/i.test(msg)) return 'the request could not reach the server';
+  return msg ? ('an unexpected error (' + msg + ')') : 'an unknown error';
+}
+const failedRetry = (what, key, err) =>
+  `<div class="err" id="err-${key}">Could not load ${esc(what)}: ${esc(reasonFor(err))}.
+    <button class="quiet retry" data-key="${key}" type="button">Retry</button></div>`;
+
+/* ---------- map ---------- */
+const map = L.map('map').setView([51.5074, -0.1278], 13);
+const street = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: 'Tiles &copy; Esri, map data &copy; OpenStreetMap contributors' });
+const streetOSM = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, maxNativeZoom: 16, attribution: 'Tiles &copy; Esri' });
+const sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: 'Imagery &copy; Esri' });
+const topo = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', { maxZoom: 17, subdomains: 'abc', attribution: '&copy; OpenTopoMap, OpenStreetMap' });
+street.addTo(map);
+L.control.layers({ Street: street, 'Light grey (Esri)': streetOSM, Satellite: sat, 'Contours (topo)': topo }).addTo(map);
+const North = L.Control.extend({
+  options: { position: 'topleft' },
+  onAdd() {
+    const d = L.DomUtil.create('div', 'leaflet-bar');
+    d.style.cssText = 'background:var(--panel);color:var(--ink);width:34px;height:34px;display:flex;align-items:center;justify-content:center;font:700 13px "Archivo",sans-serif;';
+    d.innerHTML = '&#8593;N';
+    d.title = 'North is up';
+    return d;
+  }
+});
+map.addControl(new North());
+L.control.scale({ metric: true, imperial: false, position: 'bottomleft' }).addTo(map);
+const RatioCtl = L.Control.extend({
+  options: { position: 'bottomleft' },
+  onAdd(m) {
+    const d = L.DomUtil.create('div', 'leaflet-bar');
+    d.style.cssText = 'background:var(--panel);color:var(--ink);padding:3px 8px;font:12px monospace';
+    d.title = 'Approximate ratio at 96 dpi screen resolution';
+    const upd = () => {
+      const mpp = 156543.03392 * Math.cos(m.getCenter().lat * Math.PI / 180) / Math.pow(2, m.getZoom());
+      d.textContent = '≈ 1 : ' + Math.round(mpp / 0.000264583).toLocaleString();
+    };
+    m.on('zoomend moveend', upd); upd();
+    return d;
+  }
+});
+
+const GridTiles = L.GridLayer.extend({
+  createTile() {
+    const s = this.getTileSize(), t = document.createElement('canvas');
+    t.width = s.x; t.height = s.y;
+    const g = t.getContext('2d');
+    g.strokeStyle = 'rgba(0,0,0,.4)'; g.lineWidth = 1;
+    g.strokeRect(.5, .5, s.x - 1, s.y - 1);
+    return t;
+  }
+});
+L.control.layers(null, { Grid: new GridTiles({ tileSize: 128 }) }).addTo(map);
+const overlay = L.layerGroup().addTo(map);
+const shadeGroup = L.layerGroup().addTo(map);
+let marker = null, lastResult = null;
+
+let lineMode = false, linePts = [], lineLayer = null;
+let boundaryMode = false, boundaryPts = [], boundaryLine = null, boundaryPoly = null, siteBoundary = null;
+map.on('click', e => {
+  if (secMode) { sectionClick(e.latlng); return; }
+  if (lineMode) { handleLineClick(e.latlng); return; }
+  if (boundaryMode) { handleBoundaryClick(e.latlng); return; }
+  if (shapeMode) { handleShapeClick(e.latlng); return; }
+  if (map.pm && map.pm.globalDrawModeEnabled && map.pm.globalDrawModeEnabled()) return;
+  offerPoint(e.latlng);
+});
+function offerPoint(ll) {
+  const box = document.createElement('div');
+  const t = document.createElement('div');
+  t.style.cssText = 'font:600 13px "Public Sans",sans-serif;margin-bottom:6px';
+  t.textContent = ll.lat.toFixed(5) + ', ' + ll.lng.toFixed(5);
+  const b = document.createElement('button');
+  b.type = 'button'; b.textContent = 'Analyse this point'; b.style.cssText = 'padding:6px 10px;font-size:13px';
+  b.addEventListener('click', () => {
+    map.closePopup();
+    siteBoundary = null;
+    if (boundaryPoly) { map.removeLayer(boundaryPoly); boundaryPoly = null; }
+    analyse(ll.lat, ll.lng);
+  });
+  box.appendChild(t); box.appendChild(b);
+  L.popup().setLatLng(ll).setContent(box).openOn(map);
+}
+
+$('#drawBoundary').addEventListener('click', () => {
+  boundaryMode = !boundaryMode;
+  boundaryPts = [];
+  if (boundaryLine) { map.removeLayer(boundaryLine); boundaryLine = null; }
+  $('#drawBoundary').textContent = boundaryMode ? 'Cancel (click points, then Finish)' : 'Draw site boundary';
+  setStatus(boundaryMode ? 'Click points around the site, then press Finish boundary.' : 'Waiting for a site.');
+  const finishBtn = $('#finishBoundary');
+  if (finishBtn) finishBtn.remove();
+  if (boundaryMode) {
+    const btn = document.createElement('button');
+    btn.className = 'quiet'; btn.id = 'finishBoundary'; btn.type = 'button'; btn.textContent = 'Finish boundary';
+    btn.style.marginTop = '6px';
+    btn.addEventListener('click', finishBoundary);
+    $('#status').insertAdjacentElement('afterend', btn);
+  }
+});
+
+function handleBoundaryClick(latlng) {
+  boundaryPts.push(latlng);
+  if (boundaryLine) map.removeLayer(boundaryLine);
+  boundaryLine = L.polyline(boundaryPts, { color: '#E8590C', weight: 2, dashArray: '4 4' }).addTo(map);
+  setStatus(`${boundaryPts.length} point${boundaryPts.length > 1 ? 's' : ''} — click to add more, or press Finish boundary.`);
+}
+
+function polygonArea(pts) {
+  const refLat = pts.reduce((s, p) => s + p.lat, 0) / pts.length;
+  const refLng = pts.reduce((s, p) => s + p.lng, 0) / pts.length;
+  const xy = pts.map(p => metersXY(p.lat, p.lng, refLat, refLng));
+  let a = 0;
+  for (let i = 0; i < xy.length; i++) { const j = (i + 1) % xy.length; a += xy[i].x * xy[j].y - xy[j].x * xy[i].y; }
+  return Math.abs(a) / 2;
+}
+
+function finishBoundary() {
+  if (boundaryPts.length < 3) { setStatus('Add at least 3 points before finishing.'); return; }
+  boundaryMode = false;
+  $('#drawBoundary').textContent = 'Draw site boundary';
+  const btn = $('#finishBoundary'); if (btn) btn.remove();
+  if (boundaryLine) { map.removeLayer(boundaryLine); boundaryLine = null; }
+  if (boundaryPoly) map.removeLayer(boundaryPoly);
+  boundaryPoly = L.polygon(boundaryPts, { color: '#E8590C', weight: 2, fillOpacity: .12 }).addTo(map);
+  const centroid = { lat: boundaryPts.reduce((s, p) => s + p.lat, 0) / boundaryPts.length, lng: boundaryPts.reduce((s, p) => s + p.lng, 0) / boundaryPts.length };
+  const lats = boundaryPts.map(p => p.lat), lngs = boundaryPts.map(p => p.lng);
+  siteBoundary = {
+    points: boundaryPts.slice(), area: polygonArea(boundaryPts),
+    bounds: { south: Math.min(...lats), north: Math.max(...lats), west: Math.min(...lngs), east: Math.max(...lngs) }
+  };
+  boundaryPts = [];
+  analyse(centroid.lat, centroid.lng);
+}
+
+$('#search').addEventListener('submit', async ev => {
+  ev.preventDefault();
+  const q = $('#q').value.trim();
+  if (!q) return;
+  setStatus('Searching…');
+  try {
+    const r = await getJSON('https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + encodeURIComponent(q));
+    if (!r.length) { setStatus('No match for that search. Try a fuller address.'); return; }
+    const lat = parseFloat(r[0].lat), lng = parseFloat(r[0].lon);
+    map.setView([lat, lng], 16);
+    analyse(lat, lng);
+  } catch (e) { setStatus('Search failed. Check your connection and try again.'); }
+});
+
+function setStatus(t) { $('#status').textContent = t; }
+
+/* ---------- data loaders ---------- */
+async function loadTerrain(lat, lng, boundary) {
+  const n = 5;
+  let centerLat = lat, centerLng = lng, dLat, dLng;
+  if (boundary) {
+    const padLat = Math.max((boundary.bounds.north - boundary.bounds.south) * 0.35, 0.00025);
+    const padLng = Math.max((boundary.bounds.east - boundary.bounds.west) * 0.35, 0.00025);
+    centerLat = (boundary.bounds.north + boundary.bounds.south) / 2;
+    centerLng = (boundary.bounds.east + boundary.bounds.west) / 2;
+    dLat = ((boundary.bounds.north - boundary.bounds.south) / 2 + padLat) / 2;
+    dLng = ((boundary.bounds.east - boundary.bounds.west) / 2 + padLng) / 2;
+  } else {
+    const step = 150;
+    dLat = step / 111320; dLng = step / (111320 * Math.cos(lat * Math.PI / 180));
+  }
+  const lats = [], lngs = [];
+  for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) {
+    lats.push((centerLat + (2 - i) * dLat).toFixed(6));
+    lngs.push((centerLng + (j - 2) * dLng).toFixed(6));
+  }
+  const d = await getJSON(`https://api.open-meteo.com/v1/elevation?latitude=${lats.join(',')}&longitude=${lngs.join(',')}`);
+  const z = d.elevation;
+  const g = (i, j) => z[i * n + j];
+  const stepX = dLng * 111320 * Math.cos(centerLat * Math.PI / 180), stepY = dLat * 111320;
+  // Horn's method on the central 3x3 block
+  const a = g(1,1), b = g(1,2), c = g(1,3), dd = g(2,1), f = g(2,3), gg = g(3,1), h = g(3,2), ii = g(3,3);
+  const dzdx = ((c + 2*f + ii) - (a + 2*dd + gg)) / (8 * stepX);
+  const dzdy = ((gg + 2*h + ii) - (a + 2*b + c)) / (8 * stepY);
+  const slope = Math.sqrt(dzdx*dzdx + dzdy*dzdy) * 100;
+  const aspect = (Math.atan2(-dzdx, dzdy) * 180 / Math.PI + 360) % 360; // direction the slope faces
+  return { centre: g(2,2), min: Math.min(...z), max: Math.max(...z), slope, aspect, z, n, dLat, dLng, centerLat, centerLng, gridMeters: Math.round(4 * Math.max(stepX, stepY)), boundary: boundary || null };
+}
+
+async function loadClimate(lat, lng) {
+  const end = new Date(Date.now() - 10 * 864e5);
+  const start = new Date(end.getTime() - 89 * 864e5);
+  const url = `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lng}` +
+    `&start_date=${iso(start)}&end_date=${iso(end)}` +
+    `&daily=temperature_2m_mean,temperature_2m_max,temperature_2m_min,precipitation_sum,shortwave_radiation_sum` +
+    `&hourly=wind_speed_10m,wind_direction_10m,surface_pressure&wind_speed_unit=ms&timezone=auto`;
+  const d = await getJSON(url);
+  const D = d.daily, H = d.hourly;
+  const clean = a => a.filter(v => v !== null && v !== undefined);
+
+  const bins = new Array(16).fill(0);
+  const speeds = [];
+  H.wind_speed_10m.forEach((s, k) => {
+    const dir = H.wind_direction_10m[k];
+    if (s === null || dir === null) return;
+    speeds.push(s);
+    bins[Math.round(dir / 22.5) % 16]++;
+  });
+  const top = bins.indexOf(Math.max(...bins));
+
+  const tmean = clean(D.temperature_2m_mean), tmax = clean(D.temperature_2m_max), tmin = clean(D.temperature_2m_min);
+  const rain = D.precipitation_sum.map(v => v ?? 0);
+  const weeks = 13;
+  const binnedRain = new Array(weeks).fill(0);
+  const perBin = Math.ceil(rain.length / weeks);
+  rain.forEach((v, k) => { binnedRain[Math.min(weeks - 1, Math.floor(k / perBin))] += v; });
+
+  let hdd = 0, cdd = 0;
+  tmean.forEach(t => { hdd += Math.max(0, 18 - t); cdd += Math.max(0, t - 18); });
+  let freezeThaw = 0, hot = 0;
+  D.time.forEach((t, k) => {
+    if (D.temperature_2m_min[k] < 0 && D.temperature_2m_max[k] > 0) freezeThaw++;
+    if (D.temperature_2m_max[k] > 30) hot++;
+  });
+  let run = 0, longestDry = 0;
+  rain.forEach(r => { if (r < 1) { run++; longestDry = Math.max(longestDry, run); } else run = 0; });
+
+  return {
+    from: iso(start), to: iso(end),
+    windMean: mean(speeds), windTop: top, bins,
+    pressure: mean(clean(H.surface_pressure)),
+    tMean: mean(tmean), tMax: Math.max(...tmax), tMin: Math.min(...tmin),
+    rainTotal: rain.reduce((x, y) => x + y, 0), rainMaxDay: Math.max(...rain),
+    heavyDays: rain.filter(r => r >= 20).length, weeklyRain: binnedRain,
+    solar: mean(clean(D.shortwave_radiation_sum)) / 3.6, // MJ/m2/day -> kWh/m2/day
+    hdd, cdd, freezeThaw, hot, longestDry,
+    tMaxS: D.temperature_2m_max, tMinS: D.temperature_2m_min, solarS: D.shortwave_radiation_sum, speeds
+  };
+}
+
+async function loadFlood(lat, lng) {
+  const d = await getJSON(`https://flood-api.open-meteo.com/v1/flood?latitude=${lat}&longitude=${lng}&daily=river_discharge&past_days=92&forecast_days=92`);
+  const v = (d.daily.river_discharge || []).filter(x => x !== null);
+  if (!v.length) return { none: true };
+  return { mean: mean(v), peak: Math.max(...v), series: v };
+}
+
+async function loadFuture(lat, lng) {
+  const d = await getJSON(`https://climate-api.open-meteo.com/v1/climate?latitude=${lat}&longitude=${lng}` +
+    `&start_date=1991-01-01&end_date=2050-12-31&models=MRI_AGCM3_2_S&daily=temperature_2m_mean,precipitation_sum`);
+  const t = d.daily.time, T = d.daily.temperature_2m_mean, P = d.daily.precipitation_sum;
+  const pick = (y0, y1) => {
+    const temps = [], rain = [];
+    t.forEach((s, k) => {
+      const y = parseInt(s.slice(0, 4), 10);
+      if (y >= y0 && y <= y1) { if (T[k] !== null) temps.push(T[k]); rain.push(P[k] ?? 0); }
+    });
+    return { temp: mean(temps), rain: rain.reduce((x, y) => x + y, 0) / (y1 - y0 + 1) };
+  };
+  const base = pick(1991, 2020), fut = pick(2031, 2050);
+  const yr = {};
+  t.forEach((s2, k) => { const y = +s2.slice(0, 4); const o = yr[y] || (yr[y] = { n: 0, t: 0, r: 0 }); if (T[k] !== null) { o.t += T[k]; o.n++; } o.r += (P[k] ?? 0); });
+  const years = Object.keys(yr).map(Number).sort((a, b) => a - b).map(y => ({ y, temp: yr[y].t / Math.max(1, yr[y].n), rain: yr[y].r }));
+  return { dT: fut.temp - base.temp, rainBase: base.rain, rainFut: fut.rain, years };
+}
+
+async function loadAround(lat, lng) {
+  const A = `(around:500,${lat},${lng})`;
+  const q = `[out:json][timeout:25];(` +
+    `way["highway"]${A};way["waterway"]${A};` +
+    `way["natural"~"water|wood|scrub|wetland|grassland|bare_rock|scree|cliff"]${A};` +
+    `way["landuse"~"forest|meadow|grass|farmland|orchard"]${A};` +
+    `node["highway"="bus_stop"]${A};node["railway"~"station|tram_stop|halt"]${A};node["natural"="tree"]${A};` +
+    `);out tags center 700;`;
+  const d = await getJSON('https://overpass-api.de/api/interpreter?data=' + encodeURIComponent(q));
+  const out = { walk: 0, road: 0, roadTypes: {}, transit: 0, trees: 0, water: [], veg: {}, rock: 0, dots: [] };
+  const WALK = ['footway','path','pedestrian','steps','cycleway','living_street','track'];
+  d.elements.forEach(el => {
+    const t = el.tags || {};
+    const pos = el.type === 'node' ? [el.lat, el.lon] : (el.center ? [el.center.lat, el.center.lon] : null);
+    if (el.type === 'node') {
+      if (t.natural === 'tree') out.trees++;
+      else { out.transit++; if (pos) out.dots.push([pos, '#E8590C']); }
+      return;
+    }
+    if (t.highway) {
+      if (WALK.includes(t.highway)) out.walk++;
+      else { out.road++; out.roadTypes[t.highway] = (out.roadTypes[t.highway] || 0) + 1; }
+      return;
+    }
+    if (t.waterway || t.natural === 'water' || t.natural === 'wetland') {
+      out.water.push(t.name || t.waterway || t.natural);
+      if (pos) out.dots.push([pos, '#2B6CB0']);
+      return;
+    }
+    if (['bare_rock','scree','cliff'].includes(t.natural)) { out.rock++; return; }
+    const v = t.natural || t.landuse;
+    if (v) { out.veg[v] = (out.veg[v] || 0) + 1; if (pos) out.dots.push([pos, '#2F855A']); }
+  });
+  return out;
+}
+
+/* ---------- drawing ---------- */
+function roseSVG(bins) {
+  const max = Math.max(...bins), cx = 100, cy = 100, R = 76;
+  const pt = (deg, r) => `${(cx + r * Math.sin(deg * Math.PI / 180)).toFixed(1)},${(cy - r * Math.cos(deg * Math.PI / 180)).toFixed(1)}`;
+  let petals = '';
+  bins.forEach((v, i) => {
+    const r = max ? (v / max) * R : 0;
+    petals += `<polygon points="${cx},${cy} ${pt(i * 22.5 - 10, r)} ${pt(i * 22.5 + 10, r)}" fill="currentColor" opacity=".85"/>`;
+  });
+  return `<svg class="rose" viewBox="0 0 200 200" role="img" aria-label="Wind rose showing how often wind blows from each direction">
+    <circle cx="100" cy="100" r="76" fill="none" style="stroke:var(--line)"/><circle cx="100" cy="100" r="38" fill="none" style="stroke:var(--line)"/>
+    ${petals}
+    <text x="100" y="13" text-anchor="middle">N</text><text x="190" y="104" text-anchor="middle">E</text>
+    <text x="100" y="196" text-anchor="middle">S</text><text x="10" y="104" text-anchor="middle">W</text></svg>`;
+}
+function rainBars(w) {
+  if (!Array.isArray(w) || !w.length) return `<div class="note">No rainfall data available for this window.</div>`;
+  const max = Math.max(...w);
+  if (max <= 0) return `<div class="note">No rain recorded in the last 90 days.</div>`;
+  const W = 300, H = 90, bw = W / w.length;
+  const bars = w.map((v, i) => { const h = Math.max(2, v / max * (H - 20)); return `<rect x="${(i * bw + 2).toFixed(1)}" y="${(H - 14 - h).toFixed(1)}" width="${(bw - 4).toFixed(1)}" height="${h.toFixed(1)}" rx="2" style="fill:var(--accent)"><title>Week ${i + 1}: ${v.toFixed(0)} mm</title></rect><text x="${(i * bw + bw / 2).toFixed(1)}" y="${H - 3}" text-anchor="middle" font-size="8" style="fill:var(--muted)">${i + 1}</text>`; }).join('');
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:340px;height:auto;display:block;margin:8px 0" role="img" aria-label="Rainfall by week, last 90 days"><text x="0" y="8" font-size="8" style="fill:var(--muted)">${max.toFixed(0)} mm</text>${bars}</svg>`;
+}
+function drawGrid(T) {
+  shadeGroup.clearLayers();
+  const range = T.max - T.min || 1;
+  for (let i = 0; i < T.n; i++) for (let j = 0; j < T.n; j++) {
+    const z = T.z[i * T.n + j], t = (z - T.min) / range;
+    const cLat = T.centerLat + (2 - i) * T.dLat, cLng = T.centerLng + (j - 2) * T.dLng;
+    L.rectangle([[cLat - T.dLat / 2, cLng - T.dLng / 2], [cLat + T.dLat / 2, cLng + T.dLng / 2]], {
+      weight: 0, fillColor: shadeColor(t), fillOpacity: .45
+    }).bindTooltip(z.toFixed(0) + ' m').addTo(shadeGroup);
+  }
+}
+
+/* ---------- main ---------- */
+function renderTerrain(T) {
+  lastTerrainObj = T;
+  drawGrid(T);
+  const s = T.slope;
+  const cls = s < 2 ? 'flat' : s < 5 ? 'gentle' : s < 10 ? 'moderate' : s < 15 ? 'steep' : 'very steep';
+  const usedBoundary = !!T.boundary;
+  return section('Terrain and elevation',
+    (usedBoundary ? row('Drawn site area', fmt(T.boundary.area, 0) + ' m²') : '') +
+    row(usedBoundary ? 'Elevation at site centre' : 'Elevation at the point', fmt(T.centre, 0) + ' m') +
+    row(`Range across the ${T.gridMeters} m grid`, `${fmt(T.min, 0)} to ${fmt(T.max, 0)} m`, `Relief of ${fmt(T.max - T.min, 0)} m (shaded on the map).${usedBoundary ? ' Grid sized to your drawn boundary.' : ''}`) +
+    row('Slope', fmt(s, 1) + '%', `Classed as ${cls}.`, s >= 10 ? 'flag' : '') +
+    row('Slope faces', bearingName(T.aspect) + ` (${fmt(T.aspect, 0)}°)`, 'Direction the ground faces. Relevant to solar gain and drainage.'));
+}
+function renderClimate(C) {
+  return section('Wind',
+    `<div class="row"><dt>Wind rose</dt><dd></dd><div class="note">Petals show how often wind blows from each direction over the last 90 days.</div></div>` + roseSVG(C.bins) +
+    row('Prevailing wind from', `${COMPASS[C.windTop]}`) +
+    row('Mean wind speed at 10 m', fmt(C.windMean, 1) + ' m/s', 'Open-terrain value. Buildings and trees change it locally.') +
+    row('Mean air pressure', fmt(C.pressure, 0) + ' hPa')) +
+  section('Climate and thermal',
+    row('Mean temperature', fmt(C.tMean) + ' °C', `Extremes ${fmt(C.tMin, 0)} to ${fmt(C.tMax, 0)} °C.`) +
+    row('Solar radiation', fmt(C.solar, 1) + ' kWh/m²/day', 'Average on a horizontal surface.') +
+    row('Heating degree days', fmt(C.hdd, 0), 'Base 18 °C, last 90 days.') +
+    row('Cooling degree days', fmt(C.cdd, 0), 'Base 18 °C, last 90 days.') +
+    row('Days above 30 °C', String(C.hot)) +
+    row('Freeze–thaw days', String(C.freezeThaw), 'Days crossing 0 °C. A rough guide to frost weathering of masonry and concrete.')) +
+  section('Rainfall, erosion and fire indicators',
+    row('Rainfall (last 90 days)', fmt(C.rainTotal, 0) + ' mm') +
+    `<div class="row"><dt>By week</dt><dd></dd></div>` + rainBars(C.weeklyRain) +
+    row('Heaviest day', fmt(C.rainMaxDay, 0) + ' mm') +
+    row('Days over 20 mm', String(C.heavyDays), 'Heavy-rain days drive surface runoff and erosion, especially on slopes.') +
+    row('Longest dry spell', C.longestDry + ' days', 'Consecutive days under 1 mm. Combined with hot days, a rough fire-weather indicator, not a fire-risk rating.')) + climateCharts(C);
+}
+function renderFlood(F) {
+  return renderFloodBase(F) + (F.series ? floodChart(F.series) : '');
+}
+function renderFloodBase(F) {
+  return section('Water and flood',
+    F.none ? row('River flow model', 'No river nearby', 'The 5 km model cell has no modelled river. This does not rule out surface-water or coastal flooding.')
+      : row('River discharge nearby', `${fmt(F.mean, 1)} avg / ${fmt(F.peak, 1)} peak m³/s`, 'Six-month window around today from a global model. Not a flood map. Check official flood-zone maps for the site.'));
+}
+function renderAround(A) {
+  A.dots.forEach(([p, col]) => L.circleMarker(p, { radius: 4, color: col, fillColor: col, fillOpacity: .8, weight: 1 }).addTo(overlay));
+  const topRoads = Object.entries(A.roadTypes).sort((a, b) => b[1] - a[1]).slice(0, 4).map(([k, v]) => `${esc(k)} ${v}`).join(', ');
+  const veg = Object.entries(A.veg).map(([k, v]) => `${esc(k)} ${v}`).join(', ');
+  const water = [...new Set(A.water)].slice(0, 4).map(esc).join(', ');
+  return section('Around the site (500 m)',
+    row('Streets and roads', String(A.road), topRoads ? 'Mapped segments: ' + topRoads + '.' : '') +
+    row('Footpaths, cycleways, tracks', String(A.walk)) +
+    row('Bus stops and rail stops', String(A.transit), 'Orange dots on the map.') +
+    row('Mapped water features', String(A.water.length), water ? 'Includes: ' + water + '. Blue dots on the map.' : '') +
+    row('Mapped vegetation areas', String(Object.values(A.veg).reduce((x, y) => x + y, 0)), (veg ? veg + '. ' : '') + 'Green dots on the map.') +
+    row('Individually mapped trees', String(A.trees), 'Only trees someone has added to OpenStreetMap.') +
+    row('Mapped rock, scree or cliff', String(A.rock)));
+}
+function renderFuture(U) {
+  const ys = U.years || [], last = Math.max(0, ys.length - 1), first2031 = ys.findIndex(y => y.y >= 2031);
+  const xl = [[0, ys.length ? ys[0].y : ''], [last, ys.length ? ys[last].y : '']], shade = first2031 >= 0 ? [first2031, last] : null;
+  return section('Future climate',
+    row('Warming by 2031–2050', (U.dT >= 0 ? '+' : '') + fmt(U.dT, 1) + ' °C', 'Compared with 1991–2020, one climate model.') +
+    row('Annual rainfall by 2031–2050', `${fmt(U.rainFut, 0)} mm`, `Versus ${fmt(U.rainBase, 0)} mm for 1991–2020.`)) +
+    lineSVG([{ name: 'Annual mean temperature', vals: ys.map(y => y.temp), color: '#E8590C' }], { title: 'Mean temperature by year', unit: '°C', dp: 1, xLabels: xl, shade }) +
+    lineSVG([{ name: 'Annual rainfall', vals: ys.map(y => y.rain), color: '#2B6CB0' }], { title: 'Rainfall by year', unit: 'mm', xLabels: xl, shade }) +
+    '<p class="small">The shaded years are 2031–2050. One climate model, so the trend is indicative and single years are noise.</p>';
+}
+
+let currentSite = null;
+const SECTIONS = {
+  terrain: { what: 'terrain', loader: (lat, lng) => loadTerrain(lat, lng, currentSite && currentSite.boundary), render: (v) => renderTerrain(v) },
+  climate: { what: 'wind and climate data', loader: (lat, lng) => loadClimate(lat, lng), render: renderClimate },
+  flood: { what: 'flood data', loader: (lat, lng) => loadFlood(lat, lng), render: renderFlood },
+  around: { what: 'surroundings', loader: (lat, lng) => loadAround(lat, lng), render: renderAround },
+  future: { what: 'future climate', loader: (lat, lng) => loadFuture(lat, lng), render: renderFuture }
+};
+
+async function retrySection(key) {
+  const { what, loader, render } = SECTIONS[key];
+  const { lat, lng } = currentSite;
+  const box = $('#sec-' + key);
+  box.innerHTML = `<div class="status">Retrying ${esc(what)}…</div>`;
+  try {
+    const v = await loader(lat, lng);
+    box.innerHTML = render(v, lat, lng);
+    if (lastResult) lastResult[key === 'around' ? 'around' : key] = key === 'around' ? { ...v, dots: undefined } : (key === 'terrain' ? { ...v, z: undefined } : v);
+  } catch (e) {
+    box.innerHTML = failedRetry(what, key, e);
+  }
+}
+$('#out').addEventListener('click', e => {
+  const btn = e.target.closest('.retry');
+  if (btn) retrySection(btn.dataset.key);
+});
+
+async function analyse(lat, lng) {
+  lat = +lat.toFixed(5); lng = +lng.toFixed(5);
+  overlay.clearLayers();
+  if (marker) map.removeLayer(marker);
+  marker = L.circleMarker([lat, lng], { radius: 8, color: '#fff', weight: 2, fillColor: '#E8590C', fillOpacity: 1 }).addTo(map);
+  setStatus(`Reading data for ${lat}, ${lng}…`);
+  currentSite = { lat, lng, boundary: siteBoundary };
+  siteBoundary = null;
+  $('#actions').hidden = true;
+
+  const keys = Object.keys(SECTIONS);
+  $('#out').innerHTML = keys.map(k => `<div id="sec-${k}"><div class="status">Loading ${esc(SECTIONS[k].what)}…</div></div>`).join('');
+
+  const results = await Promise.allSettled(keys.map(k => SECTIONS[k].loader(lat, lng)));
+  lastResult = { lat, lng, when: new Date().toISOString() };
+  keys.forEach((k, i) => {
+    const r = results[i], box = $('#sec-' + k);
+    if (r.status === 'fulfilled') {
+      try { box.innerHTML = SECTIONS[k].render(r.value, lat, lng); }
+      catch (e) { box.innerHTML = failedRetry(SECTIONS[k].what, k, e); }
+      lastResult[k] = k === 'around' ? { ...r.value, dots: undefined } : (k === 'terrain' ? { ...r.value, z: undefined } : r.value);
+    } else {
+      box.innerHTML = failedRetry(SECTIONS[k].what, k, r.reason);
+      lastResult[k] = null;
+    }
+  });
+
+  $('#actions').hidden = false;
+  setStatus(`Site at ${lat}, ${lng}.`);
+  reverseAddress(lat, lng).then(a => {
+    if (a && currentSite && currentSite.lat === lat && currentSite.lng === lng) setStatus(`Site at ${lat}, ${lng} — ${a}`);
+  });
+}
+
+/* ---------- cross-section (user-picked line) ---------- */
+function metersXY(lat, lng, refLat, refLng) {
+  const mPerDegLat = 111320, mPerDegLng = 111320 * Math.cos(refLat * Math.PI / 180);
+  return { x: (lng - refLng) * mPerDegLng, y: (lat - refLat) * mPerDegLat };
+}
+
+$('#drawLine').addEventListener('click', () => {
+  lineMode = !lineMode;
+  linePts = [];
+  $('#drawLine').textContent = lineMode ? 'Cancel (click two points)' : 'Draw section line';
+  setStatus(lineMode ? 'Click two points on the map to define the section line.' : (currentSite ? `Site at ${currentSite.lat}, ${currentSite.lng}.` : 'Waiting for a site.'));
+});
+
+function handleLineClick(latlng) {
+  linePts.push(latlng);
+  if (linePts.length === 1) {
+    setStatus('Click a second point to finish the line.');
+    return;
+  }
+  const [A, B] = linePts;
+  if (lineLayer) map.removeLayer(lineLayer);
+  lineLayer = L.polyline([A, B], { color: '#E8590C', weight: 3, dashArray: '6 4' }).addTo(map);
+  lineMode = false;
+  linePts = [];
+  $('#drawLine').textContent = 'Draw section line';
+  buildSection(A, B);
+}
+
+async function sampleElevationAlong(A, B, n) {
+  const lats = [], lngs = [];
+  for (let i = 0; i <= n; i++) {
+    const t = i / n;
+    lats.push((A.lat + (B.lat - A.lat) * t).toFixed(5));
+    lngs.push((A.lng + (B.lng - A.lng) * t).toFixed(5));
+  }
+  const d = await getJSON(`https://api.open-meteo.com/v1/elevation?latitude=${lats.join(',')}&longitude=${lngs.join(',')}`);
+  return d.elevation;
+}
+
+async function loadSectionFeatures(A, B, bufferM) {
+  const bufDeg = bufferM / 111320;
+  const south = Math.min(A.lat, B.lat) - bufDeg, north = Math.max(A.lat, B.lat) + bufDeg;
+  const west = Math.min(A.lng, B.lng) - bufDeg, east = Math.max(A.lng, B.lng) + bufDeg;
+  const bbox = `${south},${west},${north},${east}`;
+  const q = `[out:json][timeout:25];(` +
+    `way["building"](${bbox});` +
+    `node["natural"="tree"](${bbox});` +
+    `way["highway"](${bbox});` +
+    `);out tags center;`;
+  const d = await getJSON('https://overpass-api.de/api/interpreter?data=' + encodeURIComponent(q));
+  return d.elements;
+}
+
+function projectFeatures(elements, A, B, bufferM) {
+  const refLat = (A.lat + B.lat) / 2, refLng = (A.lng + B.lng) / 2;
+  const a = metersXY(A.lat, A.lng, refLat, refLng), b = metersXY(B.lat, B.lng, refLat, refLng);
+  const dx = b.x - a.x, dy = b.y - a.y;
+  const len = Math.hypot(dx, dy);
+  const ux = dx / len, uy = dy / len;
+  const buildings = [], trees = [], roads = [];
+  elements.forEach(el => {
+    const t = el.tags || {};
+    const pos = el.type === 'node' ? { lat: el.lat, lng: el.lon } : (el.center ? { lat: el.center.lat, lng: el.center.lon } : null);
+    if (!pos) return;
+    const p = metersXY(pos.lat, pos.lng, refLat, refLng);
+    const px = p.x - a.x, py = p.y - a.y;
+    const s = px * ux + py * uy;            // distance along the line, meters
+    const perp = px * uy - py * ux;         // perpendicular offset, meters
+    if (s < 0 || s > len || Math.abs(perp) > bufferM) return;
+    if (t.natural === 'tree') {
+      const h = parseFloat(t.height) || 6;
+      trees.push({ s, h });
+    } else if (t.building) {
+      let h = parseFloat(t.height);
+      if (!h && t['building:levels']) h = parseFloat(t['building:levels']) * 3;
+      if (!h) h = 6;
+      buildings.push({ s, h, name: t.name || t.building });
+    } else if (t.highway) {
+      roads.push({ s, name: t.highway });
+    }
+  });
+  return { len, buildings, trees, roads };
+}
+
+function sectionSVG(elevs, n, len, feats, scale, water) {
+  const padL = 48, padB = 40, padT = 24, padR = 16, H = 360, mmPx = 0.000264583;
+  const rawW = len / (scale * mmPx), plotW = Math.max(320, Math.min(9000, rawW)), W = padL + plotW + padR;
+  const plotH = H - padT - padB, base = padT + plotH;
+  const gMin = Math.min(...elevs), gMax = Math.max(...elevs);
+  const maxH = Math.max(0, ...feats.buildings.map(f => f.h), ...feats.trees.map(f => f.h));
+  const top = gMax + Math.max(8, maxH) + 3, range = Math.max(1, top - gMin);
+  const xAt = s => padL + (s / len) * plotW, yAt = e => padT + plotH - ((e - gMin) / range) * plotH;
+  const exag = (plotH / range) / (plotW / len);
+  const groundAt = s => { const t = (s / len) * n, i = Math.max(0, Math.min(n - 1, Math.floor(t))), f = t - i; return elevs[i] + (elevs[i + 1] - elevs[i]) * f; };
+  const f1 = v => v.toFixed(1);
+  const pts = elevs.map((e, i) => [xAt(i / n * len), yAt(e) + Math.sin(i * 12.9898) * 1.1]);
+  let gd = `M${f1(pts[0][0])},${f1(pts[0][1])}`;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || p2;
+    gd += ` C${f1(p1[0] + (p2[0] - p0[0]) / 6)},${f1(p1[1] + (p2[1] - p0[1]) / 6)} ${f1(p2[0] - (p3[0] - p1[0]) / 6)},${f1(p2[1] - (p3[1] - p1[1]) / 6)} ${f1(p2[0])},${f1(p2[1])}`;
+  }
+  const fillD = `${gd} L${f1(xAt(len))},${base} L${padL},${base} Z`;
+  let ticks = '';
+  for (let i = 0; i <= 4; i++) {
+    const e = gMin + range * i / 4, y = yAt(e);
+    ticks += `<line x1="${padL}" y1="${f1(y)}" x2="${W - padR}" y2="${f1(y)}" style="stroke:var(--line)" stroke-dasharray="2 4"/><text x="${padL - 6}" y="${f1(y + 3)}" text-anchor="end" font-size="10" style="fill:var(--muted)">${e.toFixed(0)} m</text>`;
+  }
+  const bl = feats.buildings.map(f => {
+    const g = groundAt(f.s), x = xAt(f.s), yT = yAt(g + f.h), yB = yAt(g);
+    return `<rect x="${f1(x - 9)}" y="${f1(yT)}" width="18" height="${f1(yB - yT)}" style="fill:var(--accent);fill-opacity:.5;stroke:var(--accent)" stroke-width="1.2"/><path d="M${f1(x - 10)},${f1(yT)} L${f1(x + 10)},${f1(yT)}" style="stroke:var(--ink)" stroke-width="1.8"/>`;
+  }).join('');
+  const tr = feats.trees.map((f, k) => {
+    const g = groundAt(f.s), x = xAt(f.s), yb = yAt(g), yt = yAt(g + f.h), r = Math.max(5, (yb - yt) * 0.38), j = Math.sin(k * 7.3);
+    return `<path d="M${f1(x)},${f1(yb)} Q${f1(x + j * 4)},${f1((yb + yt) / 2)} ${f1(x)},${f1(yt + r * .8)}" stroke="#7a5230" stroke-width="2" fill="none" stroke-linecap="round"/>` +
+      `<g style="fill:#2F855A;fill-opacity:.72;stroke:#1F5C3B" stroke-width=".8"><circle cx="${f1(x - r * .55)}" cy="${f1(yt + r * .45)}" r="${f1(r * .7)}"/><circle cx="${f1(x + r * .55)}" cy="${f1(yt + r * .45)}" r="${f1(r * .7)}"/><circle cx="${f1(x)}" cy="${f1(yt - r * .1)}" r="${f1(r * .85)}"/></g>`;
+  }).join('');
+  const rd = feats.roads.map(f => { const y = yAt(groundAt(f.s)), x = xAt(f.s); return `<path d="M${f1(x - 6)},${f1(y)} L${f1(x + 6)},${f1(y)}" stroke="#E8590C" stroke-width="3" stroke-linecap="round"/>`; }).join('');
+  const pxPerM = plotW / len;
+  const barM = [1, 2, 5, 10, 20, 50, 100, 200, 500].filter(b => b * pxPerM <= 170).pop() || 1, barW = barM * pxPerM;
+  const sb = `<g transform="translate(${padL},${H - 22})"><rect x="0" y="0" width="${f1(barW / 2)}" height="5" style="fill:var(--ink)"/><rect x="${f1(barW / 2)}" y="0" width="${f1(barW / 2)}" height="5" style="fill:var(--panel);stroke:var(--ink)"/><text x="0" y="16" font-size="10" style="fill:var(--ink)">0</text><text x="${f1(barW)}" y="16" text-anchor="end" font-size="10" style="fill:var(--ink)">${barM} m</text></g>`;
+  const wt = (water || []).map(w => {
+    if (w.kind === 'area') {
+      const x0 = xAt(w.s0), x1 = xAt(w.s1), yg = yAt(groundAt((w.s0 + w.s1) / 2)), dep = 1.5 * plotH / range;
+      return `<path d="M${f1(x0)},${f1(yg)} L${f1(x1)},${f1(yg)} L${f1(x1)},${f1(yg + dep)} L${f1(x0)},${f1(yg + dep)} Z" style="fill:#2B6CB0;fill-opacity:.45;stroke:#2B6CB0"/><path d="M${f1(x0)},${f1(yg)} q${f1((x1 - x0) / 4)},-3 ${f1((x1 - x0) / 2)},0 t${f1((x1 - x0) / 2)},0" fill="none" stroke="#2B6CB0" stroke-width="1.6"/><text x="${f1((x0 + x1) / 2)}" y="${f1(yg - 6)}" text-anchor="middle" font-size="10" style="fill:#2B6CB0">${esc(w.name)}</text>`;
+    }
+    const x = xAt(w.s), yg = yAt(groundAt(w.s)), hw = Math.max(5, w.width / 2 * plotW / len), dep = Math.max(1.2, w.width / 3) * plotH / range;
+    return `<path d="M${f1(x - hw)},${f1(yg)} L${f1(x)},${f1(yg + dep)} L${f1(x + hw)},${f1(yg)} Z" style="fill:#2B6CB0;fill-opacity:.5;stroke:#2B6CB0"/><text x="${f1(x)}" y="${f1(yg - 6)}" text-anchor="middle" font-size="10" style="fill:#2B6CB0">${esc(w.name)}</text>`;
+  }).join('');
+  const clamped = rawW !== plotW ? ' (fitted)' : '';
+  return `<svg class="section-svg" viewBox="0 0 ${f1(W)} ${H}" style="width:${f1(W)}px;max-width:none;height:auto" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Site cross-section">
+    <defs><pattern id="hatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="7" stroke="#7a5230" stroke-width="1" opacity=".5"/></pattern></defs>
+    ${ticks}
+    <path d="${fillD}" fill="#E4D5B7" fill-opacity=".7"/><path d="${fillD}" fill="url(#hatch)"/>
+    <path d="${gd}" fill="none" stroke="#7a5230" stroke-opacity=".45" stroke-width="1.4" transform="translate(0,2.2)"/>
+    <path d="${gd}" fill="none" stroke="#5b3b1c" stroke-width="2.2" stroke-linecap="round"/>
+    ${wt}${bl}${tr}${rd}${sb}
+    <text x="${f1(padL + plotW)}" y="${H - 8}" text-anchor="end" font-size="10" style="fill:var(--muted)">horizontal 1 : ${scale}${clamped}, vertical exaggeration x${exag.toFixed(1)}, line ${len.toFixed(0)} m</text>
+  </svg>`;
+}
+
+let secScale = 500, secTab = 'cross', secGeo = null;
+function secDims(len, scale) {
+  const padL = 48, padR = 16, padT = 24, padB = 40, H = 360, mmPx = 0.000264583, rawW = len / (scale * mmPx), plotW = Math.max(320, Math.min(9000, rawW));
+  return { padL, padR, padT, padB, H, plotW, W: padL + plotW + padR, rawW };
+}
+function geoDefaults(A) {
+  const r = mulberry32(Math.floor((A.lat + 90) * 1e5) ^ Math.floor((A.lng + 180) * 1e5));
+  return { topsoil: +(0.3 + r() * .6).toFixed(1), bedrock: +(3 + r() * 9).toFixed(1), water: +(1 + r() * 5).toFixed(1) };
+}
+async function loadSectionWater(A, B, bufferM) {
+  const bd = bufferM / 111320;
+  const bbox = `${Math.min(A.lat, B.lat) - bd},${Math.min(A.lng, B.lng) - bd},${Math.max(A.lat, B.lat) + bd},${Math.max(A.lng, B.lng) + bd}`;
+  const q = `[out:json][timeout:25];(way["waterway"](${bbox});way["natural"="water"](${bbox});relation["natural"="water"](${bbox});relation["waterway"="riverbank"](${bbox}););out tags geom;`;
+  return (await getJSON('https://overpass-api.de/api/interpreter?data=' + encodeURIComponent(q))).elements;
+}
+function waterCrossings(els, A, B) {
+  const refLat = (A.lat + B.lat) / 2, refLng = (A.lng + B.lng) / 2;
+  const a = metersXY(A.lat, A.lng, refLat, refLng), b = metersXY(B.lat, B.lng, refLat, refLng);
+  const dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy);
+  const XY = g => g.map(p => metersXY(p.lat, p.lon, refLat, refLng));
+  const hit = (p, q) => {
+    const sx = q.x - p.x, sy = q.y - p.y, den = dx * sy - dy * sx;
+    if (Math.abs(den) < 1e-9) return null;
+    const t = ((p.x - a.x) * sy - (p.y - a.y) * sx) / den, u = ((p.x - a.x) * dy - (p.y - a.y) * dx) / den;
+    return t >= 0 && t <= 1 && u >= 0 && u <= 1 ? t * len : null;
+  };
+  const out = [];
+  els.forEach(w => {
+    const t = w.tags || {}, name = t.name || t.waterway || 'water';
+    const lines = w.type === 'relation' ? (w.members || []).filter(m => m.geometry && m.geometry.length > 1).map(m => XY(m.geometry)) : (w.geometry && w.geometry.length > 1 ? [XY(w.geometry)] : []);
+    if (!lines.length) return;
+    const segs = []; lines.forEach(l => { for (let i = 0; i < l.length - 1; i++) segs.push([l[i], l[i + 1]]); });
+    const isArea = w.type === 'relation' || t.natural === 'water' || t.waterway === 'riverbank';
+    if (isArea) {
+      const cr = []; segs.forEach(([p, q]) => { const s = hit(p, q); if (s !== null) cr.push(s); }); cr.sort((x, y) => x - y);
+      let inside = false; segs.forEach(([p, q]) => { if ((p.y > a.y) !== (q.y > a.y) && a.x < (q.x - p.x) * (a.y - p.y) / (q.y - p.y) + p.x) inside = !inside; });
+      let prev = inside ? 0 : null;
+      cr.forEach(s => { if (inside) { out.push({ kind: 'area', s0: prev, s1: s, name }); inside = false; } else { prev = s; inside = true; } });
+      if (inside && prev !== null) out.push({ kind: 'area', s0: prev, s1: len, name });
+    } else if (t.waterway) {
+      const wd = parseFloat(t.width) || ({ river: 12, canal: 8, stream: 2.5, ditch: 1.5, drain: 1.5 }[t.waterway] || 3);
+      segs.forEach(([p, q]) => { const s = hit(p, q); if (s !== null) out.push({ kind: 'line', s, width: wd, name }); });
+    }
+  });
+  return out;
+}
+function topoSVG(elevs, n, len, scale) {
+  const { padL, padR, padT, padB, H, plotW, W } = secDims(len, scale), plotH = H - padT - padB, f1 = v => v.toFixed(1);
+  const gMin = Math.min(...elevs), gMax = Math.max(...elevs), span = Math.max(0.5, gMax - gMin);
+  const lo = gMin - span * .2, hi = gMax + span * .3, range = hi - lo;
+  const step = [0.5, 1, 2, 5, 10, 20, 50].find(v => range / v <= 8) || 100;
+  const xAt = s => padL + s / len * plotW, yAt = e => padT + plotH - (e - lo) / range * plotH;
+  let grid = '', cross = '';
+  for (let lv = Math.ceil(lo / step) * step, k = 0; lv <= hi; lv += step, k++) {
+    const y = yAt(lv);
+    grid += `<line x1="${padL}" x2="${W - padR}" y1="${f1(y)}" y2="${f1(y)}" style="stroke:var(--line)" stroke-dasharray="3 4"/><text x="${padL - 6}" y="${f1(y + 3)}" text-anchor="end" font-size="10" style="fill:var(--muted)">${lv.toFixed(step < 1 ? 1 : 0)} m</text>`;
+    for (let i = 0; i < n; i++) { const a = elevs[i], b = elevs[i + 1]; if ((a - lv) * (b - lv) < 0) { const x = xAt((i + (lv - a) / (b - a)) / n * len); cross += `<path d="M${f1(x)},${f1(y - 5)} v10" stroke="#E8590C" stroke-width="1.6"/>`; } }
+  }
+  const COL = ['#4FA8D8', '#4CAF7A', '#E0B83A', '#E0752B', '#B02A2A'], cls = g => g < 2 ? 0 : g < 5 ? 1 : g < 10 ? 2 : g < 15 ? 3 : 4;
+  let segs = '', bar = '', fill = `M${f1(padL)},${f1(padT + plotH)}`;
+  for (let i = 0; i <= n; i++) fill += ` L${f1(xAt(i / n * len))},${f1(yAt(elevs[i]))}`;
+  fill += ` L${f1(xAt(len))},${f1(padT + plotH)} Z`;
+  const every = Math.max(1, Math.round(n / 8));
+  for (let i = 0; i < n; i++) {
+    const x0 = xAt(i / n * len), x1 = xAt((i + 1) / n * len), g = Math.abs(elevs[i + 1] - elevs[i]) / (len / n) * 100, c = COL[cls(g)];
+    segs += `<line x1="${f1(x0)}" y1="${f1(yAt(elevs[i]))}" x2="${f1(x1)}" y2="${f1(yAt(elevs[i + 1]))}" stroke="${c}" stroke-width="3.4" stroke-linecap="round"/>`;
+    bar += `<rect x="${f1(x0)}" y="${H - padB + 8}" width="${f1(x1 - x0 + .5)}" height="9" fill="${c}"/>`;
+    if (i % every === 0) segs += `<text x="${f1((x0 + x1) / 2)}" y="${f1(Math.min(yAt(elevs[i]), yAt(elevs[i + 1])) - 9)}" text-anchor="middle" font-size="9" style="fill:var(--ink)">${g.toFixed(1)}%</text>`;
+  }
+  const mk = (i, txt) => `<circle cx="${f1(xAt(i / n * len))}" cy="${f1(yAt(elevs[i]))}" r="4" style="fill:var(--ink)"/><text x="${f1(xAt(i / n * len))}" y="${f1(yAt(elevs[i]) + (txt[0] === 'h' ? -14 : 16))}" text-anchor="middle" font-size="10" font-weight="700" style="fill:var(--ink)">${txt === 'h' ? '' : ''}${elevs[i].toFixed(1)} m</text>`;
+  return `<svg class="section-svg" viewBox="0 0 ${f1(W)} ${H}" style="width:${f1(W)}px;max-width:none;height:auto" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Topographic section">
+    ${grid}<path d="${fill}" fill="#E4D5B7" fill-opacity=".45"/>${segs}${cross}${mk(elevs.indexOf(gMax), 'h')}${mk(elevs.indexOf(gMin), 'l')}${bar}
+    <text x="${f1(padL + plotW)}" y="${H - 8}" text-anchor="end" font-size="10" style="fill:var(--muted)">horizontal 1 : ${scale}, contour interval ${step} m, line ${len.toFixed(0)} m</text>
+  </svg>`;
+}
+function geoSVG(elevs, n, len, scale, g) {
+  const { padL, padR, padT, padB, H, plotW, W } = secDims(len, scale), plotH = H - padT - padB, f1 = v => v.toFixed(1);
+  const gMin = Math.min(...elevs), gMax = Math.max(...elevs), lo = gMin - g.bedrock - 3, hi = gMax + 2, range = hi - lo;
+  const xAt = s => padL + s / len * plotW, yAt = e => padT + plotH - (e - lo) / range * plotH;
+  const exag = (plotH / range) / (plotW / len);
+  const line = fn => elevs.map((e, i) => [xAt(i / n * len), yAt(e - fn(i))]);
+  const wob = (i, k) => Math.sin(i * 0.9 + k) * 0.12 * Math.min(1, g.bedrock / 4);
+  const d1 = i => g.topsoil + wob(i, 1) * .5, d2 = i => g.bedrock * .5 + wob(i, 2), d3 = i => g.bedrock + wob(i, 3) * 2;
+  const P = pts => pts.map(p => f1(p[0]) + ',' + f1(p[1])).join(' ');
+  const top = line(() => 0), b1 = line(d1), b2 = line(d2), b3 = line(d3), bot = y => `${f1(xAt(len))},${f1(y)} ${f1(padL)},${f1(y)}`;
+  const poly = (a, b, col) => `<polygon points="${P(a)} ${P(b.slice().reverse())}" fill="${col}" stroke="#4a3a28" stroke-width=".6"/>`;
+  const gw = line(i => g.water + Math.sin(i * .5) * .15);
+  return `<svg class="section-svg" viewBox="0 0 ${f1(W)} ${H}" style="width:${f1(W)}px;max-width:none;height:auto" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Geological section, illustrative">
+    <polygon points="${P(b3)} ${bot(padT + plotH)}" fill="#6F7B85" stroke="#4a3a28" stroke-width=".6"/>
+    ${poly(top, b3, '#A8A090')}${poly(top, b2, '#B88F5A')}${poly(top, b1, '#7A5A2E')}
+    <polyline points="${P(gw)}" fill="none" stroke="#2B6CB0" stroke-width="2" stroke-dasharray="7 4"/>
+    <polyline points="${P(top)}" fill="none" stroke="#2f2418" stroke-width="2.4" stroke-linejoin="round"/>
+    <text x="${f1(padL + plotW / 2)}" y="${f1(padT + plotH / 2)}" text-anchor="middle" font-size="26" font-weight="800" style="fill:#fff;fill-opacity:.35" transform="rotate(-8 ${f1(padL + plotW / 2)} ${f1(padT + plotH / 2)})">ILLUSTRATIVE, NOT REAL GEOLOGY</text>
+    <text x="${f1(padL + plotW)}" y="${H - 8}" text-anchor="end" font-size="10" style="fill:var(--muted)">horizontal 1 : ${scale}, vertical exaggeration x${exag.toFixed(1)}, line ${len.toFixed(0)} m</text>
+  </svg>`;
+}
+async function buildSection(A, B) {
+  const wrap = $('#sectionWrap');
+  wrap.innerHTML = '<div class="section-card"><h2>Section</h2><div class="status">Building section…</div></div>';
+  const refLat = (A.lat + B.lat) / 2, refLng = (A.lng + B.lng) / 2;
+  const a = metersXY(A.lat, A.lng, refLat, refLng), b = metersXY(B.lat, B.lng, refLat, refLng);
+  const len = Math.hypot(b.x - a.x, b.y - a.y);
+  if (len < 10) { wrap.innerHTML = '<div class="section-card"><h2>Section</h2><div class="err">That line is too short. Draw a longer one.</div></div>'; return; }
+  const n = Math.min(60, Math.max(20, Math.round(len / 15))), bufferM = 15;
+  let elevs;
+  try { elevs = await sampleElevationAlong(A, B, n); }
+  catch (e) { wrap.innerHTML = '<div class="section-card"><h2>Section</h2>' + failedRetry('the ground profile', 'crosssection', e) + '</div>'; return; }
+  secGeo = geoDefaults(A);
+  const S = { feats: { len, buildings: [], trees: [], roads: [] }, water: [], note: 'Loading buildings, trees, roads and water…' };
+  const sw = (c, t) => `<span><i class="swatch" style="background:${c}"></i>${t}</span>`;
+  const draw = () => {
+    const tabs = [['cross', 'Cross-section'], ['topo', 'Topographic'], ['geo', 'Geological']].map(([id, nm]) => `<button type="button" class="sec-tab${secTab === id ? ' on' : ''}" data-tab="${id}">${nm}</button>`).join('');
+    let body, legend, fine;
+    if (secTab === 'topo') {
+      body = topoSVG(elevs, n, len, secScale);
+      legend = [['#4FA8D8', 'under 2% flat'], ['#4CAF7A', '2-5% gentle'], ['#E0B83A', '5-10% moderate'], ['#E0752B', '10-15% steep'], ['#B02A2A', 'over 15% very steep']].map(x => sw(x[0], x[1])).join('') + sw('#E8590C', 'orange tick = contour crossing');
+      fine = 'Ground profile from the ~90 m elevation grid, coloured by slope between samples. Contour lines are horizontal guides at the interval shown. Not a survey.';
+    } else if (secTab === 'geo') {
+      body = geoSVG(elevs, n, len, secScale, secGeo);
+      legend = sw('#7A5A2E', 'Topsoil') + sw('#B88F5A', 'Residual soil') + sw('#A8A090', 'Weathered rock') + sw('#6F7B85', 'Bedrock') + sw('#2B6CB0', 'Groundwater (dashed)');
+      fine = '<b>Illustrative only.</b> No real geology or borehole data is loaded yet, so these layers are made up from the site position. Change the depths above to explore. Real foundation decisions need a geotechnical investigation.';
+    } else {
+      body = sectionSVG(elevs, n, len, S.feats, secScale, S.water);
+      legend = sw('var(--accent)', `Buildings (${S.feats.buildings.length})`) + sw('#2F855A', `Trees (${S.feats.trees.length})`) + sw('var(--flag)', `Roads crossing the line (${S.feats.roads.length})`) + sw('#2B6CB0', `Water crossings (${S.water.length})`);
+      fine = 'Schematic, not survey-accurate. Ground comes from the ~90 m elevation grid. The vertical scale is exaggerated (see the label on the drawing), so do not scale heights against distances by eye. Heights are estimated from OpenStreetMap tags, and only features already mapped there appear. Water depth is schematic.';
+    }
+    const geoRow = secTab === 'geo' ? `<div class="geo-row"><label>Topsoil m <input class="geo-in" data-k="topsoil" value="${secGeo.topsoil}"></label><label>Depth to bedrock m <input class="geo-in" data-k="bedrock" value="${secGeo.bedrock}"></label><label>Groundwater depth m <input class="geo-in" data-k="water" value="${secGeo.water}"></label></div>` : '';
+    wrap.innerHTML = `<div class="section-card"><div class="sec-tabs">${tabs}</div>
+      <label class="sec-scale">Scale 1 : <input id="secScaleIn" type="text" size="5" value="${secScale}"> <span style="color:var(--muted)">press Enter. Scroll sideways if the drawing is wide.</span></label>${geoRow}
+      <div style="overflow-x:auto">${body}</div>
+      ${S.note && secTab === 'cross' ? `<p class="small"><b>${S.note}</b></p>` : ''}
+      <div class="section-legend">${legend}</div><p class="small">${fine}</p></div>`;
+    wrap.querySelectorAll('.sec-tab').forEach(bt => { bt.onclick = () => { secTab = bt.dataset.tab; draw(); }; });
+    wrap.querySelectorAll('.geo-in').forEach(inp2 => { inp2.onchange = () => { const v = parseFloat(inp2.value); if (v > 0) { secGeo[inp2.dataset.k] = v; draw(); } }; });
+    const inp = document.getElementById('secScaleIn');
+    if (inp) inp.onkeydown = e => { if (e.key === 'Enter') { const v = parseFloat(inp.value.replace(/[^0-9.]/g, '')); if (v >= 50) { secScale = Math.min(v, 20000); draw(); } } };
+  };
+  draw();
+  setStatus('Section drawn at 1 : ' + secScale + '. It is on the sheet at the top of the map.');
+  const lim = p => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 25000))]);
+  const [fr, wr] = await Promise.allSettled([lim(loadSectionFeatures(A, B, bufferM)), lim(loadSectionWater(A, B, bufferM))]);
+  if (fr.status === 'fulfilled') S.feats = projectFeatures(fr.value, A, B, bufferM);
+  if (wr.status === 'fulfilled') S.water = waterCrossings(wr.value, A, B);
+  S.note = fr.status === 'fulfilled' && wr.status === 'fulfilled' ? '' : 'Some map features (buildings, trees, roads or water) could not be loaded just now. Redraw the line to try again.';
+  draw();
+}
+$('#sectionWrap').addEventListener('click', e => {
+  if (e.target.closest('[data-key="crosssection"]') && lineLayer) {
+    const ll = lineLayer.getLatLngs();
+    buildSection(ll[0], ll[1]);
+  }
+});
+
+$('#dl').addEventListener('click', () => {
+  if (!lastResult) return;
+  const blob = new Blob([JSON.stringify(lastResult, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `site-brief-${lastResult.lat}_${lastResult.lng}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+
+/* ================= 3D view: buildings, vegetation, sun path, wind particles ================= */
+let map3d = null, windTimer = null, windParticles = [];
+const RADIUS_M = 260; // how far around the site the 3D scene pulls features from
+
+async function loadBuildingFootprints(lat, lng, radiusM) {
+  const bufDeg = radiusM / 111320;
+  const bbox = `${lat - bufDeg},${lng - bufDeg},${lat + bufDeg},${lng + bufDeg}`;
+  const q = `[out:json][timeout:25];(` +
+    `way["building"](${bbox});` +
+    `way["natural"~"wood|scrub|wetland|grassland"](${bbox});` +
+    `way["landuse"~"forest|meadow|grass"](${bbox});` +
+    `node["natural"="tree"](${bbox});` +
+    `);out tags geom 4000;`;
+  const d = await getJSON('https://overpass-api.de/api/interpreter?data=' + encodeURIComponent(q));
+  const buildings = [], veg = [], trees = [];
+  d.elements.forEach(el => {
+    const t = el.tags || {};
+    if (el.type === 'node' && t.natural === 'tree') {
+      trees.push({ type: 'Feature', geometry: { type: 'Point', coordinates: [el.lon, el.lat] }, properties: {} });
+      return;
+    }
+    if (el.type !== 'way' || !el.geometry || el.geometry.length < 3) return;
+    const ring = el.geometry.map(p => [p.lon, p.lat]);
+    if (t.building) {
+      const bh = estBuildingHeight(t, ring);
+      buildings.push({ type: 'Feature', geometry: { type: 'Polygon', coordinates: [ring] }, properties: { id: el.id, height: bh.h, est: bh.h, tagged: bh.tagged } });
+    } else {
+      veg.push({ type: 'Feature', geometry: { type: 'Polygon', coordinates: [ring] }, properties: { dense: t.natural === 'wood' || t.landuse === 'forest' } });
+    }
+  });
+  const rnd = mulberry32(Math.floor(lat * 1e5) ^ Math.floor(lng * 1e5));
+  const treeSolids = [];
+  const addTree = (lo, la, h, r) => {
+    const kx = 111320 * Math.cos(la * Math.PI / 180);
+    const oct = rad => Array.from({ length: 9 }, (_, i) => [lo + Math.cos(i / 8 * Math.PI * 2) * rad / kx, la + Math.sin(i / 8 * Math.PI * 2) * rad / 111320]);
+    treeSolids.push({ type: 'Feature', geometry: { type: 'Polygon', coordinates: [oct(.35)] }, properties: { base: 0, height: h * .45, kind: 'trunk' } });
+    treeSolids.push({ type: 'Feature', geometry: { type: 'Polygon', coordinates: [oct(r)] }, properties: { base: h * .4, height: h, kind: 'canopy' } });
+  };
+  let nMapped = 0, nEst = 0;
+  trees.forEach(f => { if (nMapped < 400) { addTree(f.geometry.coordinates[0], f.geometry.coordinates[1], 6 + rnd() * 5, 2 + rnd() * 1.5); nMapped++; } });
+  veg.forEach(f => {
+    const ring = f.geometry.coordinates[0], want = Math.min(120, Math.floor(ringAreaM2(ring) / (f.properties.dense ? 60 : 350)));
+    const xs = ring.map(p => p[0]), ys = ring.map(p => p[1]), x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+    for (let k = 0, got = 0; k < want * 6 && got < want && nEst < 500; k++) {
+      const x = x0 + rnd() * (x1 - x0), y = y0 + rnd() * (y1 - y0);
+      if (inPoly(x, y, ring)) { addTree(x, y, 6 + rnd() * 6, 2 + rnd() * 1.8); got++; nEst++; }
+    }
+  });
+  return { buildings, veg, trees, treeSolids, nMapped, nEst };
+}
+
+/* Sun position (NOAA simplified algorithm) -> {altitudeDeg, azimuthDeg} */
+function sunPosition(date, lat, lng) {
+  const rad = Math.PI / 180;
+  const start = Date.UTC(date.getFullYear(), 0, 1);
+  const dayOfYear = Math.floor((date - start) / 864e5) + 1;
+  const fracYear = 2 * Math.PI / 365 * (dayOfYear - 1 + (date.getUTCHours() - 12) / 24);
+  const eqTime = 229.18 * (0.000075 + 0.001868 * Math.cos(fracYear) - 0.032077 * Math.sin(fracYear)
+    - 0.014615 * Math.cos(2 * fracYear) - 0.040849 * Math.sin(2 * fracYear));
+  const decl = 0.006918 - 0.399912 * Math.cos(fracYear) + 0.070257 * Math.sin(fracYear)
+    - 0.006758 * Math.cos(2 * fracYear) + 0.000907 * Math.sin(2 * fracYear)
+    - 0.002697 * Math.cos(3 * fracYear) + 0.00148 * Math.sin(3 * fracYear);
+  const timeOffset = eqTime + 4 * lng;
+  const trueSolarTime = date.getUTCHours() * 60 + date.getUTCMinutes() + date.getUTCSeconds() / 60 + timeOffset;
+  const hourAngle = (trueSolarTime / 4 - 180) * rad;
+  const latR = lat * rad;
+  const cosZenith = Math.sin(latR) * Math.sin(decl) + Math.cos(latR) * Math.cos(decl) * Math.cos(hourAngle);
+  const zenith = Math.acos(Math.max(-1, Math.min(1, cosZenith)));
+  const altitude = 90 - zenith / rad;
+  let cosAz = (Math.sin(decl) - Math.sin(latR) * Math.cos(zenith)) / (Math.cos(latR) * Math.sin(zenith));
+  cosAz = Math.max(-1, Math.min(1, cosAz));
+  let az = Math.acos(cosAz) / rad;
+  if (hourAngle > 0) az = 360 - az;
+  return { altitude, azimuth: az };
+}
+function sunPathGeoJSON(dateStr, lat, lng, radiusM) {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const coords = [], hourMarks = [];
+  for (let h = 0; h <= 24 * 4; h++) {
+    const dt = new Date(Date.UTC(y, m - 1, d, 0, h * 15));
+    const dtLocal = new Date(dt.getTime() - dt.getTimezoneOffset() * 0); // stays UTC-based, fine for a schematic diagram
+    const { altitude, azimuth } = sunPosition(dt, lat, lng);
+    if (altitude <= 0) continue;
+    const r = radiusM * (1 - altitude / 90);
+    const az = azimuth * Math.PI / 180;
+    const dx = r * Math.sin(az), dy = r * Math.cos(az);
+    const plng = lng + dx / (111320 * Math.cos(lat * Math.PI / 180));
+    const plat = lat + dy / 111320;
+    coords.push([plng, plat]);
+    if (h % 8 === 0) hourMarks.push({ type: 'Feature', geometry: { type: 'Point', coordinates: [plng, plat] }, properties: { t: ((Math.round(dt.getUTCHours() + lng / 15) % 24 + 24) % 24) + ':00' } });
+  }
+  return {
+    line: { type: 'Feature', geometry: { type: 'LineString', coordinates: coords }, properties: {} },
+    marks: { type: 'FeatureCollection', features: hourMarks }
+  };
+}
+
+function windParticleGeoJSON(lat, lng, bearingDeg, radiusM, n) {
+  if (!windParticles.length) for (let i = 0; i < n; i++) windParticles.push({ t: Math.random() * radiusM * 2, off: (Math.random() - 0.5) * radiusM * 1.4 });
+  const az = bearingDeg * Math.PI / 180, ux = Math.sin(az), uy = Math.cos(az), px = -uy, py = ux;
+  const mLng = 111320 * Math.cos(lat * Math.PI / 180);
+  const at = (s, off) => [lng + (s * ux + off * px) / mLng, lat + (s * uy + off * py) / 111320];
+  const feats = windParticles.map(p => {
+    p.t += 5;
+    if (p.t > radiusM * 2) { p.t = 0; p.off = (Math.random() - 0.5) * radiusM * 1.4; }
+    const s = p.t - radiusM;
+    return { type: 'Feature', geometry: { type: 'LineString', coordinates: [at(s - 22, p.off), at(s, p.off)] }, properties: {} };
+  });
+  return { type: 'FeatureCollection', features: feats };
+}
+
+async function open3D() {
+  const wrap = $('#view3dWrap');
+  const lat = currentSite.lat, lng = currentSite.lng;
+  const todayStr = new Date().toISOString().slice(0, 10);
+  wrap.innerHTML = `<div class="section-card">
+    <h2>3D view</h2>
+    <p class="lede">Buildings and vegetation nearby (OpenStreetMap), the sun's path across the sky for the chosen date, and an indicative wind animation. Drag to orbit, scroll to zoom. Building heights are estimates, same caveats as the cross-section.</p>
+    <div class="view3d-controls">
+      <label>Sun-path date <input type="date" id="sunDate" value="${todayStr}"></label>
+      <button class="quiet" id="windToggle" type="button">Start wind animation</button>
+      <label>Rotate <input type="range" id="bearingSlider" min="0" max="360" value="0"></label>
+      <label>Tilt <input type="range" id="pitchSlider" min="0" max="75" value="60"></label>
+    </div>
+    <div id="map3d"></div>
+    <div class="section-legend">
+      <span><i class="swatch" style="background:var(--accent);opacity:.6"></i>Buildings</span>
+      <span><i class="swatch" style="background:#2F855A;opacity:.6"></i>Vegetation / trees</span>
+      <span><i class="swatch" style="background:#F2B705"></i>Sun path (ring = time of day, closer to centre = higher in sky)</span>
+      <span><i class="swatch" style="background:#7EC8E3"></i>Wind (toward prevailing direction)</span>
+    </div>
+  </div>`;
+
+  map3d = new maplibregl.Map({
+    container: 'map3d',
+    style: { version: 8, sources: { base: { type: 'raster', tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}'], tileSize: 256, attribution: 'Tiles &copy; Esri' } }, layers: [{ id: 'base', type: 'raster', source: 'base' }] },
+    center: [lng, lat], zoom: 17.2, pitch: 60, bearing: 0, antialias: false
+  });
+  map3d.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-left');
+
+  const siteEl = document.createElement('div');
+  siteEl.style.cssText = 'width:16px;height:16px;border-radius:50%;background:#E8590C;border:2px solid #fff;box-shadow:0 0 0 2px rgba(0,0,0,.25)';
+  new maplibregl.Marker({ element: siteEl }).setLngLat([lng, lat]).addTo(map3d);
+
+  map3d.on('style.load', async () => {
+    let feats;
+    try { feats = await loadBuildingFootprints(lat, lng, RADIUS_M); }
+    catch (e) { feats = { buildings: [], veg: [], trees: [], failed: true }; }
+
+    map3d.addSource('veg', { type: 'geojson', data: { type: 'FeatureCollection', features: feats.veg } });
+    map3d.addLayer({ id: 'veg', type: 'fill', source: 'veg', paint: { 'fill-color': '#2F855A', 'fill-opacity': .45 } });
+
+    map3d.addSource('trees', { type: 'geojson', data: { type: 'FeatureCollection', features: feats.trees } });
+    
+
+    bldFeats = applyBuildingOverrides(feats.buildings);
+    map3d.addSource('buildings', { type: 'geojson', data: { type: 'FeatureCollection', features: bldFeats } });
+    map3d.addLayer({ id: 'buildings', type: 'fill-extrusion', source: 'buildings', paint: {
+      'fill-extrusion-color': ['case', ['==', ['get', 'status'], 'edited'], ['interpolate', ['linear'], ['get', 'height'], 0, '#F4B183', 30, '#E8590C', 100, '#7A2A00'], ['==', ['get', 'status'], 'estimated'], ['interpolate', ['linear'], ['get', 'height'], 0, '#C3CCD6', 30, '#8FA3B8', 100, '#4A5B6E'], ['interpolate', ['linear'], ['get', 'height'], 0, '#9BBAB7', 30, '#0B6E6E', 100, '#14323A']], 'fill-extrusion-height': ['get', 'height'], 'fill-extrusion-base': 0, 'fill-extrusion-opacity': ['case', ['get', 'tagged'], 0.85, 0.6]
+    } });
+
+    map3d.on('click', e => {
+      try {
+        const k = 6, hit = map3d.queryRenderedFeatures([[e.point.x - k, e.point.y - k], [e.point.x + k, e.point.y + k]], { layers: ['buildings'] });
+        if (!hit.length) { setStatus('No building under that click. Click a roof or wall, or use the building list under the 3D map.'); return; }
+        const f = hit[0], full = bldFeats.find(x => x.properties.id === f.properties.id) || f;
+        const pop = new maplibregl.Popup({ maxWidth: '270px' }).setLngLat(e.lngLat);
+        pop.setDOMContent(buildingPopup(full, () => pop.remove())).addTo(map3d);
+        setStatus('Building ' + full.properties.id + ' selected.');
+      } catch (err) { setStatus('Building click error: ' + err.message); }
+    });
+    map3d.on('mousemove', e => { try { map3d.getCanvas().style.cursor = map3d.queryRenderedFeatures(e.point, { layers: ['buildings'] }).length ? 'pointer' : ''; } catch (err) {} });
+    renderBuildingList();
+    { const lg2 = document.querySelector('#view3dWrap .section-legend');
+      if (lg2) lg2.insertAdjacentHTML('beforeend', '<span><i class="swatch" style="background:#0B6E6E"></i>recorded height</span><span><i class="swatch" style="background:#8FA3B8"></i>estimated height</span><span><i class="swatch" style="background:#E8590C"></i>corrected by you (click any building to set its height)</span>'); }
+    map3d.addSource('trees3d', { type: 'geojson', data: { type: 'FeatureCollection', features: feats.treeSolids || [] } });
+    map3d.addLayer({ id: 'trees3d', type: 'fill-extrusion', source: 'trees3d', paint: { 'fill-extrusion-color': ['match', ['get', 'kind'], 'trunk', '#6b4a2b', '#2F855A'], 'fill-extrusion-base': ['get', 'base'], 'fill-extrusion-height': ['get', 'height'], 'fill-extrusion-opacity': .9 } });
+    const bd = currentSite && currentSite.boundary;
+    if (bd && bd.points && bd.points.length > 2) {
+      const ring = bd.points.map(p => [p.lng, p.lat]); ring.push(ring[0]);
+      map3d.addSource('siteb', { type: 'geojson', data: { type: 'Feature', geometry: { type: 'Polygon', coordinates: [ring] }, properties: {} } });
+      map3d.addLayer({ id: 'siteb-fill', type: 'fill', source: 'siteb', paint: { 'fill-color': '#E8590C', 'fill-opacity': .25 } }, 'buildings');
+      map3d.addLayer({ id: 'siteb-line', type: 'line', source: 'siteb', paint: { 'line-color': '#E8590C', 'line-width': 4 } }, 'buildings');
+      map3d.fitBounds([[bd.bounds.west, bd.bounds.south], [bd.bounds.east, bd.bounds.north]], { padding: 80, maxZoom: 19, pitch: 60, duration: 0 });
+    }
+    const lg = document.querySelector('#view3dWrap .section-legend');
+    if (lg) lg.insertAdjacentHTML('beforeend', '<span>' + (feats.failed ? 'Buildings could not be loaded just now.' : feats.buildings.length + ' buildings, ' + feats.buildings.filter(b => b.properties.tagged).length + ' with a recorded height, the rest estimated from building type and footprint. Trees: ' + (feats.nMapped || 0) + ' mapped, ' + (feats.nEst || 0) + ' estimated from vegetation areas') + '</span>');
+    drawSunPath($('#sunDate').value);
+  });
+
+  $('#sunDate').addEventListener('change', e => drawSunPath(e.target.value));
+  $('#windToggle').addEventListener('click', toggleWind);
+  $('#bearingSlider').oninput = e => map3d.setBearing(+e.target.value);
+  $('#pitchSlider').oninput = e => map3d.setPitch(+e.target.value);
+  map3d.on('rotate', () => { const b = $('#bearingSlider'); if (b) b.value = (map3d.getBearing() + 360) % 360; });
+}
+
+let sunMarkers = [];
+function drawSunPath(dateStr) {
+  if (!map3d || !currentSite || !lastResult) return;
+  const { line, marks } = sunPathGeoJSON(dateStr, currentSite.lat, currentSite.lng, RADIUS_M * 1.6);
+  const setup = () => {
+    if (map3d.getSource('sunline')) { map3d.getSource('sunline').setData(line); map3d.getSource('sunmarks').setData(marks); }
+    else {
+      map3d.addSource('sunline', { type: 'geojson', data: line });
+      map3d.addLayer({ id: 'sunline-halo', type: 'line', source: 'sunline', layout: { 'line-cap': 'round' }, paint: { 'line-color': '#FFFFFF', 'line-width': 12, 'line-opacity': .6 } });
+      map3d.addLayer({ id: 'sunline', type: 'line', source: 'sunline', layout: { 'line-cap': 'round' }, paint: { 'line-color': '#F2B705', 'line-width': 6 } });
+      map3d.addSource('sunmarks', { type: 'geojson', data: marks });
+      map3d.addLayer({ id: 'sunmarks', type: 'circle', source: 'sunmarks', paint: { 'circle-radius': 9, 'circle-color': '#F2B705', 'circle-stroke-color': '#fff', 'circle-stroke-width': 2 } });
+    }
+    sunMarkers.forEach(m => m.remove()); sunMarkers = [];
+    marks.features.forEach(f => {
+      const d = document.createElement('div');
+      d.textContent = f.properties.t;
+      d.style.cssText = 'font:700 12px "Public Sans",sans-serif;color:#6b4e00;background:rgba(255,255,255,.9);padding:1px 6px;border-radius:3px;border:1px solid #F2B705;pointer-events:none;margin-top:-22px';
+      sunMarkers.push(new maplibregl.Marker({ element: d }).setLngLat(f.geometry.coordinates).addTo(map3d));
+    });
+  };
+  try { setup(); } catch (e) { map3d.once('style.load', setup); }
+}
+
+function toggleWind() {
+  const btn = $('#windToggle');
+  if (windTimer) {
+    clearInterval(windTimer); windTimer = null; windParticles = [];
+    if (map3d && map3d.getLayer('wind')) { map3d.removeLayer('wind'); map3d.removeSource('wind'); }
+    btn.textContent = 'Start wind animation';
+    return;
+  }
+  const bearing = lastResult && lastResult.climate ? (lastResult.climate.windTop * 22.5 + 180) % 360 : 0; // animate air moving TOWARD the leeward side
+  const initial = windParticleGeoJSON(currentSite.lat, currentSite.lng, bearing, RADIUS_M * 0.7, 70);
+  map3d.addSource('wind', { type: 'geojson', data: initial });
+  map3d.addLayer({ id: 'wind', type: 'line', source: 'wind', layout: { 'line-cap': 'round' }, paint: { 'line-color': '#4FA8D8', 'line-width': 3, 'line-opacity': .85 } });
+  windTimer = setInterval(() => {
+    const gj = windParticleGeoJSON(currentSite.lat, currentSite.lng, bearing, RADIUS_M * 0.7, 70);
+    if (map3d.getSource('wind')) map3d.getSource('wind').setData(gj);
+  }, 90);
+  btn.textContent = 'Stop wind animation';
+}
+
+$('#open3d').addEventListener('click', () => { if (currentSite) open3D(); });
+
+/* ================= Address, contour map, automatic section ================= */
+async function reverseAddress(lat, lng) {
+  try {
+    const r = await getJSON(`https://nominatim.openstreetmap.org/reverse?format=json&zoom=18&lat=${lat}&lon=${lng}`);
+    return r && r.display_name ? r.display_name : null;
+  } catch (e) { return null; }
+}
+
+function niceStep(range) {
+  const raw = range / 8, p = Math.pow(10, Math.floor(Math.log10(raw))), f = raw / p;
+  return (f < 1.5 ? 1 : f < 3.5 ? 2 : f < 7.5 ? 5 : 10) * p;
+}
+let contourGroup = null;
+$('#contourBtn').addEventListener('click', async () => {
+  if (contourGroup && overlay.hasLayer(contourGroup)) { overlay.removeLayer(contourGroup); return; }
+  const c = currentSite; if (!c) return;
+  let s, n, w, e;
+  if (c.boundary) {
+    const b = c.boundary.bounds, pl = (b.north - b.south) * .4 + .0003, pg = (b.east - b.west) * .4 + .0003;
+    s = b.south - pl; n = b.north + pl; w = b.west - pg; e = b.east + pg;
+  } else {
+    const dl = 500 / 111320, dg = 500 / (111320 * Math.cos(c.lat * Math.PI / 180));
+    s = c.lat - dl; n = c.lat + dl; w = c.lng - dg; e = c.lng + dg;
+  }
+  const N = 10, M = 30, lats = [], lngs = [];
+  for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) {
+    lats.push((n - (n - s) * i / (N - 1)).toFixed(6));
+    lngs.push((w + (e - w) * j / (N - 1)).toFixed(6));
+  }
+  setStatus('Building contours…');
+  try {
+    const z = (await getJSON(`https://api.open-meteo.com/v1/elevation?latitude=${lats.join(',')}&longitude=${lngs.join(',')}`)).elevation;
+    const G = [];
+    for (let i = 0; i < M; i++) {
+      G.push([]);
+      const fi = i * (N - 1) / (M - 1), i0 = Math.min(N - 2, Math.floor(fi)), ti = fi - i0;
+      for (let j = 0; j < M; j++) {
+        const fj = j * (N - 1) / (M - 1), j0 = Math.min(N - 2, Math.floor(fj)), tj = fj - j0;
+        const a = z[i0 * N + j0], b = z[i0 * N + j0 + 1], cc = z[(i0 + 1) * N + j0], d = z[(i0 + 1) * N + j0 + 1];
+        G[i].push(a * (1 - ti) * (1 - tj) + b * (1 - ti) * tj + cc * ti * (1 - tj) + d * ti * tj);
+      }
+    }
+    for (let pass = 0; pass < 4; pass++) {
+      const H = G.map(r => r.slice());
+      for (let i = 1; i < M - 1; i++) for (let j = 1; j < M - 1; j++)
+        H[i][j] = (G[i - 1][j] + G[i + 1][j] + G[i][j - 1] + G[i][j + 1] + 4 * G[i][j]) / 8;
+      for (let i = 0; i < M; i++) G[i] = H[i];
+    }
+    const lo = Math.min(...z), hi = Math.max(...z);
+    if (hi - lo < 2) { setStatus('Terrain is essentially flat at this data resolution, so no contours were drawn.'); return; }
+    const step = Math.max(2, niceStep(hi - lo)), grp = L.layerGroup();
+    L.rectangle([[s, w], [n, e]], { weight: 1, color: '#000', fillColor: '#fff', fillOpacity: .93, interactive: false }).addTo(grp);
+    const latAt = i => n - (n - s) * i / (M - 1), lngAt = j => w + (e - w) * j / (M - 1);
+    for (let lv = Math.ceil(lo / step) * step, k = 0; lv <= hi; lv += step, k++) {
+      const P = (i0, j0, i1, j1) => {
+        const a = G[i0][j0], b = G[i1][j1], t = (lv - a) / (b - a);
+        return [latAt(i0 + (i1 - i0) * t), lngAt(j0 + (j1 - j0) * t)];
+      };
+      const segs = [];
+      for (let i = 0; i < M - 1; i++) for (let j = 0; j < M - 1; j++) {
+        const idx = (G[i][j] >= lv ? 8 : 0) | (G[i][j + 1] >= lv ? 4 : 0) | (G[i + 1][j + 1] >= lv ? 2 : 0) | (G[i + 1][j] >= lv ? 1 : 0);
+        if (idx === 0 || idx === 15) continue;
+        const T = () => P(i, j, i, j + 1), R = () => P(i, j + 1, i + 1, j + 1), B = () => P(i + 1, j, i + 1, j + 1), Lf = () => P(i, j, i + 1, j);
+        const table = { 1: [[Lf, B]], 2: [[B, R]], 3: [[Lf, R]], 4: [[T, R]], 5: [[T, R], [Lf, B]], 6: [[T, B]], 7: [[Lf, T]], 8: [[Lf, T]], 9: [[T, B]], 10: [[Lf, T], [B, R]], 11: [[T, R]], 12: [[Lf, R]], 13: [[B, R]], 14: [[Lf, B]] };
+        table[idx].forEach(([p, q]) => segs.push([p(), q()]));
+      }
+      if (!segs.length) continue;
+      const bold = k % 5 === 0;
+      const line = L.polyline(segs, { color: '#000', weight: bold ? 2.2 : 1, interactive: bold });
+      if (bold) line.bindTooltip(Math.round(lv) + ' m', { sticky: true });
+      line.addTo(grp);
+    }
+    contourGroup = grp;
+    overlay.addLayer(grp);
+    map.fitBounds([[s, w], [n, e]]);
+    setStatus(`Contours every ${step} m, bold lines at index levels. Generalised from ~90 m elevation data, so not a survey.`);
+  } catch (err) { setStatus('Could not build contours: ' + reasonFor(err) + '.'); }
+});
+
+$('#autoSection').addEventListener('click', () => {
+  const c = currentSite; if (!c) return;
+  let A, B;
+  if (c.boundary) {
+    const b = c.boundary.bounds, lat = (b.north + b.south) / 2, pg = (b.east - b.west) * .25;
+    A = { lat, lng: b.west - pg }; B = { lat, lng: b.east + pg };
+  } else {
+    const dg = 200 / (111320 * Math.cos(c.lat * Math.PI / 180));
+    A = { lat: c.lat, lng: c.lng - dg }; B = { lat: c.lat, lng: c.lng + dg };
+  }
+  if (lineLayer) map.removeLayer(lineLayer);
+  lineLayer = L.polyline([A, B], { color: '#E8590C', weight: 3, dashArray: '6 4' }).addTo(map);
+  buildSection(A, B);
+});
+
+/* ================= Illustrative demo data (clearly fake, for showing the concept) ================= */
+function mulberry32(seed) {
+  return function () {
+    seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+    let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+let demoShown = false;
+$('#toggleDemo').addEventListener('click', () => {
+  demoShown = !demoShown;
+  const wrap = $('#demoWrap');
+  $('#toggleDemo').textContent = demoShown ? 'Hide illustrative demo data' : 'Show illustrative demo data';
+  if (!demoShown) { wrap.innerHTML = ''; return; }
+  const { lat, lng } = currentSite;
+  const rnd = mulberry32(Math.floor((lat + 90) * 100000) ^ Math.floor((lng + 180) * 100000));
+  const geologies = ['Granite', 'Shale', 'Sandstone', 'Dolomite', 'Alluvium', 'Mudstone'];
+  const fireRisks = ['Low', 'Moderate', 'High', 'Extreme'];
+  const geology = geologies[Math.floor(rnd() * geologies.length)];
+  const fire = fireRisks[Math.floor(rnd() * fireRisks.length)];
+  const landValue = Math.round((800 + rnd() * 4200) / 10) * 10;
+  const buildCost = Math.round((8000 + rnd() * 17000) / 100) * 100;
+  wrap.innerHTML = `<div class="section-card">
+    <div class="demo-banner">⚠ Illustrative demo data — made up for showing the tool's interface, not sourced from any real dataset. Never use these figures for a real decision.</div>
+    ${demoDetail(rnd, geology, fire, landValue, buildCost)}
+  </div>`;
+});
+
+/* ================= CAD toolbar, shapes, undo/redo, layers, 2D/3D ================= */
+let shapeMode = null, shapePts = [], shapes = [], shapeRedo = [], boundaryRedo = [], lineRedo = [];
+let lastTerrainObj = null, shadeRamp = 'terrain';
+const drawnShapes = L.layerGroup().addTo(map);
+const RAMPS = {
+  terrain: t => `hsl(${200 - t * 160}, 55%, ${72 - t * 32}%)`,
+  grey: t => `hsl(0, 0%, ${92 - t * 62}%)`,
+  warm: t => `hsl(${50 - t * 45}, 85%, ${88 - t * 45}%)`,
+  cool: t => `hsl(${210 + t * 50}, 60%, ${90 - t * 50}%)`
+};
+function shadeColor(t) { return RAMPS[shadeRamp](t); }
+const el = id => document.getElementById(id);
+
+function setActive() {
+  el('tSelect').classList.toggle('on', !boundaryMode && !lineMode && !shapeMode);
+  el('tBoundary').classList.toggle('on', boundaryMode);
+  el('tSection').classList.toggle('on', lineMode);
+  ['Rect', 'Circle', 'Line'].forEach(n => el('t' + n).classList.toggle('on', shapeMode === n.toLowerCase()));
+  const is3d = document.body.classList.contains('mode3d');
+  el('t3D').classList.toggle('on', is3d);
+  el('t2D').classList.toggle('on', !is3d);
+}
+function cancelModes() {
+  if (boundaryMode) $('#drawBoundary').click();
+  if (lineMode) $('#drawLine').click();
+  shapeMode = null; shapePts = [];
+}
+document.addEventListener('click', () => setTimeout(setActive, 0));
+map.on('click', () => { if (boundaryMode) boundaryRedo = []; if (lineMode) lineRedo = []; });
+
+el('tSelect').onclick = () => { cancelModes(); setActive(); };
+el('tBoundary').onclick = () => { const was = boundaryMode; cancelModes(); if (!was) $('#drawBoundary').click(); setActive(); };
+el('tSection').onclick = () => { const was = lineMode; cancelModes(); if (!was) $('#drawLine').click(); setActive(); };
+['Rect', 'Circle', 'Line'].forEach(n => {
+  el('t' + n).onclick = () => {
+    const was = shapeMode === n.toLowerCase();
+    cancelModes();
+    if (!was) { shapeMode = n.toLowerCase(); setStatus('Click two points to place the ' + shapeMode + '.'); }
+    setActive();
+  };
+});
+function handleShapeClick(ll) {
+  shapePts.push(ll);
+  if (shapePts.length < 2) { setStatus('Click the second point.'); return; }
+  const [a, b] = shapePts;
+  const style = { color: '#E8590C', weight: 2, fillOpacity: .1 };
+  const s = shapeMode === 'rect' ? L.rectangle([a, b], style)
+    : shapeMode === 'circle' ? L.circle(a, { ...style, radius: map.distance(a, b) })
+    : L.polyline([a, b], style);
+  s.addTo(drawnShapes); shapes.push(s); shapeRedo = []; shapePts = [];
+  setStatus('Shape placed. Click again for another, or press Select to stop.');
+}
+function redrawBoundary() {
+  if (boundaryLine) { map.removeLayer(boundaryLine); boundaryLine = null; }
+  if (boundaryPts.length) boundaryLine = L.polyline(boundaryPts, { color: '#E8590C', weight: 2, dashArray: '4 4' }).addTo(map);
+  setStatus(`${boundaryPts.length} point${boundaryPts.length === 1 ? '' : 's'} placed.`);
+}
+function undo() {
+  if (boundaryMode && boundaryPts.length) { boundaryRedo.push(boundaryPts.pop()); redrawBoundary(); return; }
+  if (lineMode && linePts.length) { lineRedo.push(linePts.pop()); setStatus('Point removed.'); return; }
+  if (shapeMode && shapePts.length) { shapePts.pop(); return; }
+  const s = shapes.pop(); if (s) { drawnShapes.removeLayer(s); shapeRedo.push(s); }
+}
+function redo() {
+  if (boundaryMode && boundaryRedo.length) { boundaryPts.push(boundaryRedo.pop()); redrawBoundary(); return; }
+  if (lineMode && lineRedo.length) { linePts.push(lineRedo.pop()); return; }
+  const s = shapeRedo.pop(); if (s) { s.addTo(drawnShapes); shapes.push(s); }
+}
+el('tUndo').onclick = undo;
+el('tRedo').onclick = redo;
+el('tClear').onclick = () => { drawnShapes.clearLayers(); shapes = []; shapeRedo = []; };
+document.addEventListener('keydown', e => {
+  if (['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target.tagName)) return;
+  const k = e.key.toLowerCase();
+  if ((e.ctrlKey || e.metaKey) && k === 'z') { e.preventDefault(); undo(); }
+  else if ((e.ctrlKey || e.metaKey) && k === 'y') { e.preventDefault(); redo(); }
+  else if (k === 'escape') { cancelModes(); setActive(); }
+});
+
+el('lyShade').onchange = e => { e.target.checked ? shadeGroup.addTo(map) : map.removeLayer(shadeGroup); };
+el('lyShapes').onchange = e => { e.target.checked ? drawnShapes.addTo(map) : map.removeLayer(drawnShapes); };
+el('lyContour').onchange = e => {
+  if (!currentSite) { e.target.checked = false; setStatus('Pick a site first.'); return; }
+  const on = !!(contourGroup && overlay.hasLayer(contourGroup));
+  if (e.target.checked !== on) $('#contourBtn').click();
+};
+el('rampSel').onchange = e => { shadeRamp = e.target.value; if (lastTerrainObj) drawGrid(lastTerrainObj); };
+
+el('t2D').onclick = () => {
+  document.body.classList.remove('mode3d');
+  setTimeout(() => { if (map3d) map3d.resize(); }, 50);
+  setActive();
+};
+el('t3D').onclick = () => {
+  if (!currentSite) { setStatus('Pick a site first, then press 3D.'); return; }
+  if (!map3d) $('#open3d').click();
+  document.body.classList.add('mode3d');
+  setTimeout(() => { if (map3d) map3d.resize(); }, 50);
+  setActive();
+};
+
+/* ===== Shape drawing and editing (Leaflet-Geoman) ===== */
+let activeShape = null, editOn = false, moveOn = false;
+function noLib() { setStatus('The drawing library did not load. Check your connection and reload.'); }
+function setActive() {
+  el('tSelect').classList.toggle('on', !boundaryMode && !lineMode && !activeShape && !editOn && !moveOn);
+  el('tBoundary').classList.toggle('on', boundaryMode);
+  el('tSection').classList.toggle('on', lineMode);
+  ['Rect', 'Circle', 'Line'].forEach(n => el('t' + n).classList.toggle('on', activeShape === n));
+  el('tEdit').classList.toggle('on', editOn);
+  el('tMove').classList.toggle('on', moveOn);
+  const is3d = document.body.classList.contains('mode3d');
+  el('t3D').classList.toggle('on', is3d); el('t2D').classList.toggle('on', !is3d);
+}
+function applyEdit() {
+  shapes.forEach(l => {
+    try {
+      if (!l.pm) return;
+      if (editOn) l.pm.enable({ allowSelfIntersection: false }); else l.pm.disable();
+      if (moveOn) l.pm.enableLayerDrag(); else l.pm.disableLayerDrag();
+    } catch (e) {}
+  });
+}
+const _cancelOld = cancelModes;
+cancelModes = function () {
+  _cancelOld();
+  if (map.pm) map.pm.disableDraw();
+  activeShape = null; editOn = false; moveOn = false; applyEdit();
+};
+['Rect', 'Circle', 'Line'].forEach(n => {
+  el('t' + n).onclick = () => {
+    if (!map.pm) return noLib();
+    const was = activeShape === n;
+    cancelModes();
+    if (!was) {
+      activeShape = n;
+      map.pm.enableDraw(n === 'Rect' ? 'Rectangle' : n, { pathOptions: { color: '#E8590C', weight: 2, fillOpacity: .1 } });
+      setStatus(n === 'Line' ? 'Click points, then click the last point again to finish.' : 'Click two points to draw it.');
+    }
+    setActive();
+  };
+});
+if (map.pm) map.on('pm:create', e => {
+  drawnShapes.addLayer(e.layer); shapes.push(e.layer); shapeRedo = [];
+  activeShape = null; applyEdit(); setActive();
+  setStatus('Shape placed. Use Edit to resize it or Move to drag it.');
+});
+el('tEdit').onclick = () => {
+  if (!map.pm) return noLib();
+  const was = editOn; cancelModes(); editOn = !was; applyEdit(); setActive();
+  setStatus(editOn ? 'Drag a corner, side or circle handle to resize a shape.' : 'Edit off.');
+};
+el('tMove').onclick = () => {
+  if (!map.pm) return noLib();
+  const was = moveOn; cancelModes(); moveOn = !was; applyEdit(); setActive();
+  setStatus(moveOn ? 'Drag a shape to move it.' : 'Move off.');
+};
+
+/* ===== Illustrative demo detail (made up) ===== */
+function barSVG(vals, color) {
+  const m = Math.max(...vals), w = 260, h = 50, bw = w / vals.length;
+  return `<svg viewBox="0 0 ${w} ${h}" style="width:100%;max-width:300px;height:auto;display:block;margin:6px 0"><g style="fill:${color}">${vals.map((v, i) => `<rect x="${(i * bw + 1).toFixed(1)}" y="${(h - (v / m) * h).toFixed(1)}" width="${(bw - 2).toFixed(1)}" height="${((v / m) * h).toFixed(1)}"/>`).join('')}</g></svg>`;
+}
+function demoDetail(rnd, geology, fire, landValue, buildCost) {
+  const pick = a => a[Math.floor(rnd() * a.length)];
+  const num = (a, b, d = 0) => (a + rnd() * (b - a)).toFixed(d);
+  const trend = Array.from({ length: 6 }, (_, i) => Math.round(landValue * (0.78 + i * 0.044 + rnd() * 0.03)));
+  const sh = [12, 28, 25, 22, 13].map(v => v + Math.round((rnd() - .5) * 4));
+  const hours = Array.from({ length: 24 }, (_, h) => Math.round((h > 6 && h < 20 ? 40 : 6) * (0.6 + rnd()) * (h === 8 || h === 17 ? 2.2 : 1)));
+  const cap = Math.round(trend[5] / trend[0] * 100 - 100);
+  return section('Geology (illustrative)',
+      row('Rock type', geology) +
+      row('Soil profile', pick(['Sandy loam over weathered rock', 'Clayey silt, medium plasticity', 'Dune sand over calcrete', 'Residual shale, shallow'])) +
+      row('Depth to bedrock', num(1.5, 14, 1) + ' m') +
+      row('Allowable bearing capacity', num(120, 450) + ' kPa') +
+      row('Groundwater depth', num(1, 9, 1) + ' m') +
+      row('Dolomite class', pick(['Not applicable', 'Low inherent risk', 'Medium inherent risk'])))
+    + section('Fire (illustrative)',
+      row('Rating', fire) +
+      row('Fuel load', pick(['Light grass', 'Mixed shrub', 'Dense fynbos', 'Plantation timber'])) +
+      row('Nearest fire station', num(0.8, 12, 1) + ' km') +
+      row('Fires within 5 km, last 10 years', num(0, 18)) +
+      row('Peak fire season', pick(['Dec to Mar', 'Jun to Sep', 'Jan to Apr'])))
+    + section('Land value (illustrative)',
+      row('Estimate', 'R ' + landValue.toLocaleString() + ' / m&sup2;') +
+      row('Last 6 years', (cap >= 0 ? '+' : '') + cap + '%') + barSVG(trend, 'var(--accent)') +
+      row('Against suburb median', (rnd() > .5 ? '+' : '-') + num(2, 22) + '%'))
+    + section('Construction cost (illustrative)',
+      row('Estimate', 'R ' + buildCost.toLocaleString() + ' / m&sup2;') +
+      row('Low-rise residential', 'R ' + Math.round(buildCost * 0.9).toLocaleString() + ' / m&sup2;') +
+      row('Commercial', 'R ' + Math.round(buildCost * 1.25).toLocaleString() + ' / m&sup2;') +
+      row('Split: substructure, structure, finishes, services, prelims', sh.join(' / ') + '%') + barSVG(sh, 'var(--ink)'))
+    + section('Pedestrians and footpaths (illustrative)',
+      row('Peak-hour count', num(80, 900) + ' people') +
+      row('Footpath coverage', num(35, 95) + '%') +
+      row('Busiest hour', pick(['08:00', '13:00', '17:00'])) + barSVG(hours, 'var(--contour, #4B6B4F)'));
+}
+
+/* ===== Undo/redo history for every drawing input ===== */
+const hist = [], fut = [];
+function record(op) { hist.push(op); fut.length = 0; }
+function undo() {
+  if (boundaryMode && boundaryPts.length) { boundaryRedo.push(boundaryPts.pop()); redrawBoundary(); return; }
+  if (lineMode && linePts.length) { lineRedo.push(linePts.pop()); setStatus('Point removed.'); return; }
+  const op = hist.pop(); if (op) { op.undo(); fut.push(op); }
+}
+function redo() {
+  if (boundaryMode && boundaryRedo.length) { boundaryPts.push(boundaryRedo.pop()); redrawBoundary(); return; }
+  if (lineMode && lineRedo.length) { linePts.push(lineRedo.pop()); return; }
+  const op = fut.pop(); if (op) { op.redo(); hist.push(op); }
+}
+el('tUndo').onclick = undo; el('tRedo').onclick = redo;
+const cl = x => Array.isArray(x) ? x.map(cl) : L.latLng(x.lat, x.lng);
+function getGeom(l) { return l.getRadius ? { c: L.latLng(l.getLatLng()), r: l.getRadius() } : { p: cl(l.getLatLngs()) }; }
+function setGeom(l, g) {
+  if (g.c) { l.setLatLng(g.c); l.setRadius(g.r); } else l.setLatLngs(cl(g.p));
+  try { if (l.pm && l.pm.enabled()) { l.pm.disable(); l.pm.enable({ allowSelfIntersection: false }); } } catch (e) {}
+}
+function track(l) {
+  l._snap = getGeom(l);
+  l.on('pm:edit pm:dragend', () => {
+    const before = l._snap, after = getGeom(l);
+    if (JSON.stringify(before) === JSON.stringify(after)) return;
+    l._snap = after;
+    record({ undo() { setGeom(l, before); l._snap = before; }, redo() { setGeom(l, after); l._snap = after; } });
+  });
+}
+if (map.pm) map.on('pm:create', e => {
+  const l = e.layer; track(l);
+  record({
+    undo() { drawnShapes.removeLayer(l); const i = shapes.indexOf(l); if (i >= 0) shapes.splice(i, 1); },
+    redo() { drawnShapes.addLayer(l); shapes.push(l); applyEdit(); }
+  });
+});
+el('tClear').onclick = () => {
+  if (!shapes.length) return;
+  const removed = shapes.slice(); drawnShapes.clearLayers(); shapes.length = 0;
+  record({
+    undo() { removed.forEach(l => { drawnShapes.addLayer(l); shapes.push(l); }); applyEdit(); },
+    redo() { drawnShapes.clearLayers(); shapes.length = 0; }
+  });
+};
+let lastLineRef = null;
+function recordLine() {
+  if (!lineLayer || lineLayer === lastLineRef) return;
+  const ly = lineLayer; lastLineRef = ly;
+  record({
+    undo() { map.removeLayer(ly); $('#sectionWrap').innerHTML = ''; },
+    redo() { ly.addTo(map); lineLayer = ly; const q = ly.getLatLngs(); buildSection(q[0], q[1]); }
+  });
+}
+const _hlc = handleLineClick;
+handleLineClick = function (ll) { _hlc(ll); recordLine(); };
+$('#autoSection').addEventListener('click', recordLine);
+const _fb = finishBoundary;
+finishBoundary = function () {
+  const prev = boundaryPoly; _fb();
+  if (boundaryPoly && boundaryPoly !== prev) {
+    const bp = boundaryPoly;
+    record({
+      undo() { map.removeLayer(bp); if (boundaryPoly === bp) boundaryPoly = null; setStatus('Boundary removed. Results stay until you pick another site.'); },
+      redo() { bp.addTo(map); boundaryPoly = bp; }
+    });
+  }
+};
+
+/* ===== Section drawing docked on the map ===== */
+const secWrap = $('#sectionWrap');
+new MutationObserver(() => {
+  const card = secWrap.firstElementChild;
+  secWrap.classList.toggle('docked', !!card);
+  if (card && !card.querySelector('.secx')) {
+    const x = document.createElement('button');
+    x.className = 'secx'; x.type = 'button'; x.textContent = '×'; x.title = 'Close section';
+    x.onclick = () => { secWrap.innerHTML = ''; };
+    card.prepend(x);
+  }
+}).observe(secWrap, { childList: true });
+
+/* ===== Layer stack view (exploded layers) ===== */
+let stackRatio = 7500, stackEls = null, stackSite = '', stackLoading = false, stackBg = 'auto', stackCtx = true;
+const STACK_PLANES = [
+  ['terrain', 'elevation'], ['roads', 'roads'], ['paths', 'footpaths and cycle routes'], ['transit', 'transit stops'],
+  ['water', 'water'], ['green', 'vegetation and parks'], ['built', 'built form'],
+  ['geology', 'geology (illustrative)'], ['fire', 'fire hazard (illustrative)'], ['value', 'land value (illustrative)'], ['ped', 'pedestrian movement (illustrative)']
+];
+const stackOn = new Set(STACK_PLANES.map(p => p[0]));
+(function () { const v = document.createElement('div'); v.id = 'stackView'; document.body.appendChild(v); })();
+function field(rnd, n) {
+  const g = Array.from({ length: n + 1 }, () => Array.from({ length: n + 1 }, () => rnd()));
+  return (x, y) => { const fx = x * n, fy = y * n, i = Math.min(n - 1, Math.floor(fx)), j = Math.min(n - 1, Math.floor(fy)), tx = fx - i, ty = fy - j;
+    return g[j][i] * (1 - tx) * (1 - ty) + g[j][i + 1] * tx * (1 - ty) + g[j + 1][i] * (1 - tx) * ty + g[j + 1][i + 1] * tx * ty; };
+}
+async function openStack() {
+  if (!currentSite) { setStatus('Pick a site first, then press the layer stack button.'); return; }
+  const ov = el('stackView');
+  ov.classList.add('on');
+  ov.innerHTML = '<div class="stk-bar"><button class="stk-close" id="stkClose" type="button">Close</button><label>Scale 1 : <input id="stkRatio" type="text" size="6" value="' + stackRatio + '"></label><span id="stkChips"></span></div><div id="stkBody"><div class="stk-msg">Loading map data…</div></div>';
+  el('stkClose').onclick = () => ov.classList.remove('on');
+  const BGS = { auto: null, white: ['#FFFFFF', '#F1F1F1', '#16324F', '#5b6770', '#D5D5D5'], grey: ['#CFCFCF', '#FFFFFF', '#16324F', '#44525c', '#9a9a9a'], dark: ['#10202c', '#1b3142', '#E4EEEC', '#b9c7cc', '#35505f'], black: ['#000000', '#141414', '#F2F2F2', '#c8c8c8', '#3a3a3a'] };
+  function applyStackBg() {
+    ['--stk-plane', '--ink', '--muted', '--line', '--panel'].forEach(k => ov.style.removeProperty(k));
+    ov.style.background = '';
+    const v = BGS[stackBg];
+    if (v) { ov.style.background = v[0]; ov.style.setProperty('--stk-plane', v[1]); ov.style.setProperty('--ink', v[2]); ov.style.setProperty('--muted', v[3]); ov.style.setProperty('--line', v[4]); ov.style.setProperty('--panel', v[1]); }
+    else if (stackBg.charAt(0) === '#') ov.style.background = stackBg;
+  }
+  el('stkChips').insertAdjacentHTML('beforebegin', '<label>Background <select id="stkBg"><option value="auto">Theme</option><option value="white">White</option><option value="grey">Grey</option><option value="dark">Dark</option><option value="black">Black</option></select> <input type="color" id="stkBgPick" value="#dddddd" title="Custom background"></label><label><input type="checkbox" id="stkCtx"' + (stackCtx ? ' checked' : '') + '> buildings and water on every plane</label>');
+  el('stkBg').value = stackBg in BGS ? stackBg : 'auto';
+  el('stkBg').onchange = e => { stackBg = e.target.value; applyStackBg(); };
+  el('stkBgPick').oninput = e => { stackBg = e.target.value; applyStackBg(); };
+  el('stkCtx').onchange = e => { stackCtx = e.target.checked; renderStack(); };
+  applyStackBg();
+  el('stkRatio').onkeydown = e => { if (e.key === 'Enter') { const n = parseFloat(e.target.value.replace(/[^0-9.]/g, '')); if (n >= 500) { stackRatio = Math.min(n, 15000); stackEls = null; openStack(); } } };
+  el('stkChips').innerHTML = STACK_PLANES.map(([id, name]) => `<label><input type="checkbox" data-pl="${id}" ${stackOn.has(id) ? 'checked' : ''}> ${name}</label>`).join('');
+  el('stkChips').onchange = e => { const id = e.target.dataset.pl; if (!id) return; e.target.checked ? stackOn.add(id) : stackOn.delete(id); renderStack(); };
+  const c = currentSite, R = 0.0397 * stackRatio, dl = R / 111320, dg = R / (111320 * Math.cos(c.lat * Math.PI / 180));
+  const key = [c.lat, c.lng, stackRatio].join();
+  if (!stackEls || stackSite !== key) {
+    stackEls = []; stackLoading = true; renderStack();
+    try {
+      const bbox = `${c.lat - dl},${c.lng - dg},${c.lat + dl},${c.lng + dg}`;
+      const q = `[out:json][timeout:30];(way["highway"](${bbox});way["building"](${bbox});way["natural"~"water|wood|scrub|grassland|wetland"](${bbox});way["landuse"~"forest|grass|meadow"](${bbox});way["leisure"~"park|garden|pitch"](${bbox});way["waterway"](${bbox});relation["natural"="water"](${bbox});relation["waterway"="riverbank"](${bbox});node["highway"="bus_stop"](${bbox});node["railway"~"station|tram_stop|halt"](${bbox}););out tags geom 3000;`;
+      stackEls = (await getJSON('https://overpass-api.de/api/interpreter?data=' + encodeURIComponent(q))).elements;
+      stackSite = key;
+    } catch (e) { stackEls = []; stackSite = ''; }
+    stackLoading = false;
+  }
+  renderStack();
+}
+function renderStack() {
+  const c = currentSite, R = 0.0397 * stackRatio, dl = R / 111320, dg = R / (111320 * Math.cos(c.lat * Math.PI / 180)), W = 400;
+  const px = p => ((p.lon - (c.lng - dg)) / (2 * dg)) * W, py = p => (1 - (p.lat - (c.lat - dl)) / (2 * dl)) * W;
+  const path = g => g.map((p, i) => (i ? 'L' : 'M') + px(p).toFixed(1) + ' ' + py(p).toFixed(1)).join('');
+  const roads = [], paths = [], blds = [], green = [], waterA = [], waterL = [], stops = [];
+  const FOOT = ['footway', 'path', 'pedestrian', 'steps', 'cycleway', 'track', 'living_street'];
+  (stackEls || []).forEach(w => {
+    const t = w.tags || {};
+    if (w.type === 'node') { stops.push(`<circle cx="${px(w).toFixed(1)}" cy="${py(w).toFixed(1)}" r="4" fill="#7B3FA0"/>`); return; }
+    if (w.type === 'relation') {
+      (w.members || []).forEach(m => {
+        if (!m.geometry || m.geometry.length < 2) return;
+        const g = m.geometry, dd = path(g), closed = g.length > 3 && g[0].lat === g[g.length - 1].lat && g[0].lon === g[g.length - 1].lon;
+        if (closed) waterA.push(dd + 'Z'); else waterL.push(dd);
+      });
+      return;
+    }
+    if (!w.geometry) return;
+    const d = path(w.geometry);
+    if (t.building) blds.push(d + 'Z');
+    else if (t.highway) (FOOT.includes(t.highway) ? paths : roads).push(d);
+    else if (t.waterway && t.waterway !== 'riverbank') waterL.push(d);
+    else if (t.natural === 'water' || t.natural === 'wetland' || t.waterway === 'riverbank') waterA.push(d + 'Z');
+    else green.push(d + 'Z');
+  });
+  const seed = Math.floor((c.lat + 90) * 1e5) ^ Math.floor((c.lng + 180) * 1e5);
+  const rnd = mulberry32(seed);
+  const lvBase = 800 + mulberry32(seed)() * 4200, lvLo = Math.round(lvBase * 0.6 / 10) * 10, lvHi = Math.round(lvBase * 1.6 / 10) * 10;
+  const q5 = v => Math.min(4, Math.max(0, Math.floor(v * 5)));
+  const FIRE = ['#FFF2CC', '#FDD071', '#F6A04D', '#E0592B', '#9E1B1B'], VAL = ['#FBEBD8', '#F3CBA0', '#E6A06A', '#CE7440', '#9A4A1F'];
+  const GEO = [['#D8C9A3', 'Alluvium'], ['#C9A26B', 'Sandstone'], ['#A9B8A0', 'Shale'], ['#B98F7A', 'Granite']];
+  const PED = [['#C9B3E0', 1, '0-200'], ['#A67BC9', 2, '200-500'], ['#7B3FA0', 3.5, '500-900'], ['#4B1B6B', 5, '900+']];
+  const cells = (fn, col) => { let o = ''; const n = 24, k = W / n; for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) o += `<rect x="${j * k}" y="${i * k}" width="${k + .5}" height="${k + .5}" fill="${col(fn((j + .5) / n, (i + .5) / n))}"/>`; return o; };
+  const T = lastTerrainObj;
+  const tCls = i => T ? `${(T.min + (T.max - T.min) * i / 5).toFixed(0)} to ${(T.min + (T.max - T.min) * (i + 1) / 5).toFixed(0)} m` : '';
+  const body = {
+    terrain: () => { if (!T) return ''; let o = ''; const range = T.max - T.min || 1;
+      for (let i = 0; i < T.n; i++) for (let j = 0; j < T.n; j++) { const la = T.centerLat + (2 - i) * T.dLat, ln = T.centerLng + (j - 2) * T.dLng, t = (T.z[i * T.n + j] - T.min) / range;
+        o += `<rect x="${(((ln - T.dLng / 2) - (c.lng - dg)) / (2 * dg) * W).toFixed(1)}" y="${((1 - ((la + T.dLat / 2) - (c.lat - dl)) / (2 * dl)) * W).toFixed(1)}" width="${(T.dLng / (2 * dg) * W).toFixed(1)}" height="${(T.dLat / (2 * dl) * W).toFixed(1)}" fill="${shadeColor((q5(t) + .5) / 5)}"/>`; }
+      return o; },
+    roads: () => `<path d="${roads.join('')}" fill="none" stroke="#E8590C" stroke-width="1.6"/>`,
+    paths: () => `<path d="${paths.join('')}" fill="none" stroke="#B8860B" stroke-width="1" stroke-dasharray="3 2"/>`,
+    transit: () => stops.join(''),
+    water: () => `<path d="${waterA.join('')}" fill="#2B6CB0" fill-opacity=".5" stroke="#2B6CB0"/><path d="${waterL.join('')}" fill="none" stroke="#2B6CB0" stroke-width="2.4"/>`,
+    green: () => `<path d="${green.join('')}" fill="#2F855A" fill-opacity=".5"/>`,
+    built: () => `<path d="${blds.join('')}" style="fill:var(--ink);fill-opacity:.55;stroke:var(--ink)" stroke-width=".6"/>`,
+    geology: () => cells(field(mulberry32(7), 4), v => GEO[Math.min(3, Math.floor(v * 4))][0]),
+    fire: () => cells(field(rnd, 5), v => FIRE[q5(v)]),
+    value: () => cells(field(rnd, 6), v => VAL[q5(v)]),
+    ped: () => [...roads, ...paths].map(d => { const k = PED[Math.min(3, Math.floor(rnd() * 4))]; return `<path d="${d}" fill="none" stroke="${k[0]}" stroke-width="${k[1]}" stroke-linecap="round"/>`; }).join('')
+  };
+  const row = (col, txt) => `<div><i style="background:${col}"></i>${txt}</div>`;
+  const legend = {
+    terrain: () => T ? '<b>Elevation: darker = higher</b>' + [0, 1, 2, 3, 4].map(i => row(shadeColor((i + .5) / 5), tCls(i))).join('') : '',
+    roads: () => '<b>Roads</b>' + row('#E8590C', 'Road centre line'),
+    paths: () => '<b>Paths</b>' + row('#B8860B', 'Footpath or cycle route'),
+    transit: () => '<b>Transit</b>' + row('#7B3FA0', 'Bus or rail stop'),
+    water: () => '<b>Water</b>' + row('#2B6CB0', 'Water body or waterway'),
+    green: () => '<b>Vegetation</b>' + row('#2F855A', 'Park, wood, grass or scrub'),
+    built: () => '<b>Buildings</b>' + row('#16324F', 'Building footprint'),
+    geology: () => '<b>Geology (made up)</b>' + GEO.map(g => row(g[0], g[1])).join(''),
+    fire: () => '<b>Fire hazard index (made up): darker = higher</b>' + ['0-20 low', '20-40 moderate', '40-60 high', '60-80 very high', '80-100 extreme'].map((t, i) => row(FIRE[i], t)).join(''),
+    value: () => '<b>Land value, R/m² (made up): darker = higher</b>' + [0, 1, 2, 3, 4].map(i => row(VAL[i], `${Math.round(lvLo + (lvHi - lvLo) * i / 5)} to ${Math.round(lvLo + (lvHi - lvLo) * (i + 1) / 5)}`)).join(''),
+    ped: () => '<b>People per hour (made up): thicker = busier</b>' + PED.map(k => row(k[0], k[2])).join('')
+  };
+  const bdy = currentSite && currentSite.boundary;
+  const outline = bdy && bdy.points ? `<path d="${path(bdy.points.map(p => ({ lat: p.lat, lon: p.lng })))}Z" style="fill:#E8590C;fill-opacity:.14;stroke:#E8590C" stroke-width="2.6"/>` : `<g style="stroke:#E8590C" stroke-width="2.6" fill="none"><circle cx="200" cy="200" r="9"/><path d="M200,182V218M182,200H218"/></g>`;
+  const ctx = id => (stackCtx ? ((id !== 'water' ? `<path d="${waterA.join('')}" fill="#2B6CB0" fill-opacity=".3" stroke="#2B6CB0" stroke-width=".8"/><path d="${waterL.join('')}" fill="none" stroke="#2B6CB0" stroke-width="2"/>` : '') + (id !== 'built' ? `<path d="${blds.join('')}" style="fill:var(--ink);fill-opacity:.18;stroke:var(--ink);stroke-opacity:.5" stroke-width=".5"/>` : '')) : '') + outline;
+  const shown = STACK_PLANES.filter(([id]) => stackOn.has(id));
+  el('stkBody').innerHTML = shown.map(([id, name]) => `<div class="stk-plane"><div class="stk-label">${name}</div><div class="stk-legend">${legend[id]()}</div><svg class="stk-svg" viewBox="0 0 400 400"><rect width="400" height="400" style="fill:var(--stk-plane, var(--panel));stroke:var(--muted)" stroke-dasharray="3 3"/>${body[id]()}${ctx(id)}</svg></div>`).join('') +
+    (stackLoading ? '<div class="stk-msg">Loading roads, buildings and green areas…</div>' : (stackEls && stackEls.length ? '' : '<div class="stk-msg">Roads, buildings and green areas could not be loaded just now. Close and reopen the stack to try again.</div>')) +
+    `<div class="stk-msg">Each plane covers about ${Math.round(R * 2)} m across at 1 : ${stackRatio}. The orange outline is your site. Colours are grouped into five numbered classes where the data is numeric.</div>`;
+}
+
+/* ===== Section tool (own click handling), editable map ratio ===== */
+let secMode = false, secPts = [], secPreview = null;
+function startSection() { cancelModes(); secMode = true; secPts = []; setStatus('Click the first point of the section line.'); }
+function sectionClick(ll) {
+  secPts.push(ll);
+  if (secPts.length === 1) {
+    if (secPreview) map.removeLayer(secPreview);
+    secPreview = L.circleMarker(ll, { radius: 5, color: '#E8590C' }).addTo(map);
+    setStatus('Click the second point.'); return;
+  }
+  const [A, B] = secPts; secPts = []; secMode = false;
+  if (secPreview) { map.removeLayer(secPreview); secPreview = null; }
+  if (lineLayer) map.removeLayer(lineLayer);
+  lineLayer = L.polyline([A, B], { color: '#E8590C', weight: 3, dashArray: '6 4' }).addTo(map);
+  recordLine(); runSection(A, B); setActive();
+}
+async function runSection(A, B) {
+  try { await buildSection(A, B); }
+  catch (e) { $('#sectionWrap').innerHTML = `<div class="section-card"><h2>Cross-section</h2><div class="err">Could not draw the section: ${esc(reasonFor(e))}.</div></div>`; }
+}
+const _c2 = cancelModes;
+cancelModes = function () { _c2(); secMode = false; secPts = []; if (secPreview) { map.removeLayer(secPreview); secPreview = null; } };
+const _sa = setActive;
+setActive = function () { _sa(); el('tSection').classList.toggle('on', secMode); if (secMode) el('tSelect').classList.remove('on'); };
+el('tSection').onclick = () => { const was = secMode; cancelModes(); if (!was) startSection(); setActive(); };
+const _u2 = undo;
+undo = function () {
+  if (secMode && secPts.length) { secPts.pop(); if (secPreview) { map.removeLayer(secPreview); secPreview = null; } setStatus('Point removed. Click the first point again.'); return; }
+  _u2();
+};
+el('tUndo').onclick = undo;
+
+(function () {
+  const Ctl = L.Control.extend({
+    options: { position: 'bottomleft' },
+    onAdd(m) {
+      const d = L.DomUtil.create('div', 'leaflet-bar');
+      d.style.cssText = 'background:var(--panel);color:var(--ink);padding:3px 8px;font:12px monospace;display:flex;gap:4px;align-items:center';
+      d.innerHTML = '1 : <input type="text" size="7" title="Type a scale ratio and press Enter" style="font:inherit;padding:1px 4px;border:1px solid var(--line);background:var(--paper);color:var(--ink)">';
+      L.DomEvent.disableClickPropagation(d); L.DomEvent.disableScrollPropagation(d);
+      const inp = d.querySelector('input');
+      const k = () => 156543.03392 * Math.cos(m.getCenter().lat * Math.PI / 180) / 0.000264583;
+      const upd = () => { if (document.activeElement !== inp) inp.value = Math.round(k() / Math.pow(2, m.getZoom())); };
+      inp.addEventListener('keydown', e => {
+        if (e.key !== 'Enter') return;
+        const n = parseFloat(inp.value.replace(/[^0-9.]/g, ''));
+        if (n > 50) { m.options.zoomSnap = 0; m.setZoom(Math.log2(k() / n)); }
+        inp.blur();
+      });
+      m.on('zoomend moveend', upd); upd();
+      return d;
+    }
+  });
+  map.addControl(new Ctl());
+})();
+
+el('tStack').onclick = openStack;
+
+/* ===== Charts and design indicators ===== */
+function lineSVG(series, o = {}) {
+  const W = 300, H = 110, pl = 30, pr = 6, pt = 8, pb = 16;
+  const all = series.flatMap(s => s.vals.filter(Number.isFinite));
+  if (!all.length) return '';
+  let lo = Math.min(...all), hi = Math.max(...all);
+  if (hi - lo < 1e-9) { hi += 1; lo -= 1; }
+  const pad = (hi - lo) * 0.08; lo -= pad; hi += pad;
+  const n = Math.max(...series.map(s => s.vals.length));
+  const X = i => pl + (n > 1 ? i / (n - 1) : 0) * (W - pl - pr), Y = v => pt + (1 - (v - lo) / (hi - lo)) * (H - pt - pb);
+  const lines = series.map(s => { let d = ''; s.vals.forEach((v, i) => { if (Number.isFinite(v)) d += (d ? 'L' : 'M') + X(i).toFixed(1) + ',' + Y(v).toFixed(1); }); return `<path d="${d}" fill="none" style="stroke:${s.color}" stroke-width="1.6"/>`; }).join('');
+  const grid = [0, .5, 1].map(f => { const v = lo + (hi - lo) * f; return `<line x1="${pl}" x2="${W - pr}" y1="${Y(v).toFixed(1)}" y2="${Y(v).toFixed(1)}" style="stroke:var(--line)" stroke-dasharray="2 3"/><text x="${pl - 4}" y="${(Y(v) + 3).toFixed(1)}" text-anchor="end" font-size="8" style="fill:var(--muted)">${v.toFixed(o.dp || 0)}</text>`; }).join('');
+  const shade = o.shade ? `<rect x="${X(o.shade[0]).toFixed(1)}" y="${pt}" width="${(X(o.shade[1]) - X(o.shade[0])).toFixed(1)}" height="${H - pt - pb}" style="fill:var(--accent);fill-opacity:.1"/>` : '';
+  const xl = (o.xLabels || []).map(([i, t]) => `<text x="${X(i).toFixed(1)}" y="${H - 3}" text-anchor="middle" font-size="8" style="fill:var(--muted)">${t}</text>`).join('');
+  const leg = series.map(s => `<span style="display:inline-flex;align-items:center;gap:4px;margin-right:10px"><i style="width:14px;height:3px;background:${s.color};display:inline-block"></i>${s.name}</span>`).join('');
+  return `<div class="chart"><div class="chart-t">${o.title || ''}${o.unit ? ' (' + o.unit + ')' : ''}</div><svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:340px;height:auto;display:block">${shade}${grid}${lines}${xl}</svg><div class="chart-l">${leg}</div></div>`;
+}
+function histSVG(vals, edges, title, unit) {
+  const cnt = new Array(edges.length - 1).fill(0);
+  vals.forEach(v => { for (let i = 0; i < cnt.length; i++) if (v >= edges[i] && v < edges[i + 1]) { cnt[i]++; break; } });
+  const tot = vals.length || 1, W = 300, H = 100, bw = (W - 10) / cnt.length, m = Math.max(...cnt, 1);
+  const bars = cnt.map((c, i) => { const h = c / m * 60, x = 5 + i * bw;
+    return `<rect x="${(x + 2).toFixed(1)}" y="${(76 - h).toFixed(1)}" width="${(bw - 4).toFixed(1)}" height="${h.toFixed(1)}" style="fill:var(--accent)"/><text x="${(x + bw / 2).toFixed(1)}" y="${(72 - h).toFixed(1)}" text-anchor="middle" font-size="7.5" style="fill:var(--ink)">${Math.round(c / tot * 100)}%</text><text x="${(x + bw / 2).toFixed(1)}" y="88" text-anchor="middle" font-size="7.5" style="fill:var(--muted)">${edges[i + 1] > 90 ? edges[i] + '+' : edges[i] + '-' + edges[i + 1]}</text>`; }).join('');
+  return `<div class="chart"><div class="chart-t">${title} (${unit})</div><svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:340px;height:auto;display:block">${bars}</svg></div>`;
+}
+function climateCharts(C) {
+  const sp = C.speeds || [], sorted = sp.slice().sort((a, b) => a - b);
+  const p95 = sorted.length ? sorted[Math.floor(0.95 * (sorted.length - 1))] : NaN;
+  const days = (C.tMaxS || []).length, xl = [[0, '90 days ago'], [Math.max(0, days - 1), 'now']];
+  return section('Design indicators (screening only)',
+      row('Mean wind speed at 10 m', fmt(C.windMean, 1) + ' m/s') +
+      row('95th percentile wind speed', fmt(p95, 1) + ' m/s', 'From hourly values over the last 90 days.') +
+      row('Dynamic pressure at that speed', fmt(0.613 * p95 * p95, 0) + ' Pa', 'q = 0.613 v². Open terrain at 10 m from a short record. This is not a design value. The wind loading standard and terrain category for the site govern.')) +
+    lineSVG([{ name: 'Daily max', vals: C.tMaxS || [], color: '#E8590C' }, { name: 'Daily min', vals: C.tMinS || [], color: '#2B6CB0' }], { title: 'Temperature range', unit: '°C', xLabels: xl }) +
+    lineSVG([{ name: 'Solar radiation', vals: (C.solarS || []).map(v => v / 3.6), color: '#F2B705' }], { title: 'Solar radiation on a horizontal surface', unit: 'kWh/m²/day', dp: 1, xLabels: xl }) +
+    histSVG(sp, [0, 2, 4, 6, 8, 10, 12, 100], 'Wind speed distribution, share of hours', 'm/s');
+}
+
+function floodChart(v) {
+  const past = Math.min(92, v.length - 1), last = v.length - 1;
+  return lineSVG([{ name: 'River discharge', vals: v, color: '#2B6CB0' }], { title: 'River discharge nearby, 92 days either side of today', unit: 'm³/s', dp: 1, xLabels: [[0, '92 days ago'], [past, 'today'], [last, '+92 days']], shade: past < last ? [past, last] : null }) +
+    '<p class="small">The shaded part is the model forecast. It is a global river model, not a flood-zone map.</p>';
+}
+
+/* ===== helpers for 3D heights and trees ===== */
+function ringAreaM2(ring) {
+  const la0 = ring[0][1], kx = 111320 * Math.cos(la0 * Math.PI / 180), ky = 111320;
+  let a = 0;
+  for (let i = 0; i < ring.length - 1; i++) a += (ring[i][0] * kx) * (ring[i + 1][1] * ky) - (ring[i + 1][0] * kx) * (ring[i][1] * ky);
+  return Math.abs(a) / 2;
+}
+function inPoly(x, y, ring) {
+  let c = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    if ((ring[i][1] > y) !== (ring[j][1] > y) && x < (ring[j][0] - ring[i][0]) * (y - ring[i][1]) / (ring[j][1] - ring[i][1]) + ring[i][0]) c = !c;
+  }
+  return c;
+}
+const BTYPE_H = { house: 7, detached: 7, semidetached_house: 7, terrace: 8, residential: 9, apartments: 15, dormitory: 15, commercial: 12, retail: 7, office: 18, industrial: 9, warehouse: 8, garage: 3, garages: 3, shed: 3, church: 14, school: 10, hospital: 20, hotel: 18, university: 14, public: 10, civic: 10, roof: 4, hut: 3, cabin: 4, farm: 6, barn: 7 };
+function estBuildingHeight(t, ring) {
+  const num = v => { const x = parseFloat(String(v || '').replace(',', '.')); return x > 0 ? x : 0; };
+  const h = num(t.height) || num(t['building:height']);
+  if (h) return { h, tagged: true };
+  const lv = num(t['building:levels']);
+  if (lv) return { h: lv * 3.2 + (num(t['roof:levels']) ? 2 : 0), tagged: true };
+  if (BTYPE_H[t.building]) return { h: BTYPE_H[t.building], tagged: false };
+  const a = ringAreaM2(ring);
+  return { h: a < 60 ? 4 : a < 200 ? 7 : a < 800 ? 10 : 14, tagged: false };
+}
+
+/* ===== Click a 3D building to set its height (footprint keeps its shape) ===== */
+let bldFeats = [];
+const BH_KEY = 'sitez_building_heights';
+function bhLoad() { try { return JSON.parse(localStorage.getItem(BH_KEY) || '{}'); } catch (e) { return {}; } }
+function bhSave(o) { try { localStorage.setItem(BH_KEY, JSON.stringify(o)); } catch (e) {} if (lastResult) lastResult.heightOverrides = o; }
+function applyBuildingOverrides(feats) {
+  const o = bhLoad();
+  feats.forEach(f => {
+    const p = f.properties, v = o[p.id];
+    if (p.est === undefined) p.est = p.height;
+    if (v > 0) { p.height = v; p.status = 'edited'; } else { p.height = p.est; p.status = p.tagged ? 'recorded' : 'estimated'; }
+  });
+  return feats;
+}
+function refreshBuildings() { if (map3d && map3d.getSource && map3d.getSource('buildings')) map3d.getSource('buildings').setData({ type: 'FeatureCollection', features: bldFeats }); renderBuildingList(); }
+function setBuildingHeight(id, h) {
+  if (!(h > 0 && h <= 500)) return false;
+  const o = bhLoad(); o[id] = h; bhSave(o);
+  const f = bldFeats.find(x => x.properties.id === id);
+  if (f) { f.properties.height = h; f.properties.status = 'edited'; }
+  refreshBuildings(); return true;
+}
+function resetBuildingHeight(id) {
+  const o = bhLoad(); delete o[id]; bhSave(o);
+  const f = bldFeats.find(x => x.properties.id === id);
+  if (f) { f.properties.height = f.properties.est; f.properties.status = f.properties.tagged ? 'recorded' : 'estimated'; }
+  refreshBuildings();
+}
+function buildingPopup(f, done) {
+  const p = f.properties, box = document.createElement('div');
+  box.style.cssText = 'font:13px "Public Sans",sans-serif;color:#16324F;min-width:210px';
+  const status = p.status === 'edited' ? 'Corrected by you' : p.status === 'recorded' ? 'Height recorded in OpenStreetMap' : 'Height estimated';
+  box.innerHTML = `<b>Building ${p.id}</b><div style="color:#555;margin:2px 0 6px">${status}: ${(+p.height).toFixed(1)} m${p.status === 'edited' ? ' (estimate was ' + (+p.est).toFixed(1) + ' m)' : ''}</div>` +
+    `<label>Height (m) <input type="text" size="5" class="bh-m" value="${(+p.height).toFixed(1)}"></label> <label>or storeys <input type="text" size="3" class="bh-s"></label>` +
+    `<div style="margin-top:8px;display:flex;gap:6px"><button type="button" class="bh-set" style="padding:5px 10px;font-size:12px">Set height</button>${p.status === 'edited' ? '<button type="button" class="bh-reset" style="padding:5px 10px;font-size:12px">Reset</button>' : ''}</div>` +
+    `<div style="color:#555;margin-top:6px;font-size:11px">The footprint keeps its exact shape. Only the height changes. Roofs are drawn flat, and storeys count as 3 m each.</div>`;
+  box.querySelector('.bh-set').onclick = () => {
+    const st = parseFloat(box.querySelector('.bh-s').value.replace(/[^0-9.]/g, '')), m = parseFloat(box.querySelector('.bh-m').value.replace(/[^0-9.]/g, ''));
+    const h = st > 0 ? st * 3 : m;
+    if (setBuildingHeight(p.id, h)) done(); else box.querySelector('.bh-m').style.borderColor = '#B02A2A';
+  };
+  const rb = box.querySelector('.bh-reset'); if (rb) rb.onclick = () => { resetBuildingHeight(p.id); done(); };
+  return box;
+}
+
+function ringCentre(ring) { let x = 0, y = 0; ring.forEach(p => { x += p[0]; y += p[1]; }); return [x / ring.length, y / ring.length]; }
+function renderBuildingList() {
+  const card = document.querySelector('#view3dWrap .section-card');
+  if (!card || !currentSite) return;
+  let box = document.getElementById('bldList');
+  if (!box) { box = document.createElement('div'); box.id = 'bldList'; card.appendChild(box); }
+  const kx = 111320 * Math.cos(currentSite.lat * Math.PI / 180);
+  const rows = bldFeats.map(f => { const c = ringCentre(f.geometry.coordinates[0]); return { f, c, d: Math.hypot((c[0] - currentSite.lng) * kx, (c[1] - currentSite.lat) * 111320) }; }).sort((a, b) => a.d - b.d).slice(0, 30);
+  box.innerHTML = '<h2>Building heights</h2><p class="small">The 30 nearest buildings. Type a height in metres and press Enter, or press Zoom to find the building in 3D.</p>';
+  rows.forEach(({ f, c, d }) => {
+    const p = f.properties, r = document.createElement('div');
+    r.style.cssText = 'display:grid;grid-template-columns:1fr 64px auto;gap:6px;align-items:center;padding:5px 0;border-bottom:1px solid var(--line);font-size:.8rem';
+    const st = p.status === 'edited' ? 'corrected' : p.status === 'recorded' ? 'recorded' : 'estimated';
+    r.innerHTML = `<span>#${p.id} · ${Math.round(d)} m away · ${st}</span><input type="text" value="${(+p.height).toFixed(1)}" style="font:inherit;padding:2px 4px;border:1px solid var(--line);background:var(--paper);color:var(--ink);width:64px"><button type="button" class="quiet" style="padding:3px 8px;font-size:.75rem">Zoom</button>`;
+    const inp = r.querySelector('input');
+    inp.onkeydown = e => { if (e.key === 'Enter') { const v = parseFloat(inp.value.replace(/[^0-9.]/g, '')); if (!setBuildingHeight(p.id, v)) inp.style.borderColor = '#B02A2A'; } };
+    r.querySelector('button').onclick = () => map3d.flyTo({ center: c, zoom: 19, pitch: 60, duration: 800 });
+    box.appendChild(r);
+  });
+}
+</script>
+
+</body>
+</html>
